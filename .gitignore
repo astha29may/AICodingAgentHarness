@@ -1,0 +1,6 @@
+.github/docs/*
+3.1.0
+.github/PROBLEMSTATEMENT.md
+.github/TechnicalGaps.md
+.github/DESIGN.md
+.github/tools/*.ps1

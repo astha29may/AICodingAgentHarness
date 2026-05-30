@@ -1,3 +1,17 @@
+# Technical Architect Workflow
+
+This repository expects you to run the helper scripts from your active Conda base environment.
+
+## Setup
+
+1. Activate your base Conda environment.
+2. Install dependencies if needed: `pip install -r requirements.txt`
+
+## Script entry points
+
+- Script executor workflow: [.github/prompts/script-executor.prompt.md](prompts/script-executor.prompt.md)
+- Workbook extraction: [.github/tools/run_extract_vendor_selection_rules.ps1](tools/run_extract_vendor_selection_rules.ps1)
+- Core reader: [.github/tools/extract_vendor_selection_rules.py](tools/extract_vendor_selection_rules.py)
 # AI Architect System — Copilot Agent Setup
 
 ## Overview
