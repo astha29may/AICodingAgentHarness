@@ -22,6 +22,8 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 for every file you write or modify. If a request conflicts with those standards, follow the standards
 and flag the conflict.
 
+**Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
+
 ## Read order
 1. `output/DESIGN.md` — the named telemetry stack, SLOs/signals, and failure modes.
 2. `docs/observability.md` — logging destinations, metrics/traces, dashboards, alerts (fill the `TODO: Add details`).

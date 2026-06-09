@@ -32,9 +32,10 @@ Enforce a strict red-green-refactor loop so every behavior is proven by a test b
 - Meet the coverage target defined in `IMPLEMENTATIONPLAN.md`.
 
 ## Bug-fix variant
-1. Write a failing test that reproduces the bug.
-2. Fix the code until that test passes.
-3. Confirm no regressions via the full suite.
+1. Analyze the existing code and identify the **root cause** before changing anything; state it in one line.
+2. Write a failing test that reproduces the bug.
+3. Fix the root cause *within the existing logic* — do not add a parallel path, wrapper, or patch that masks the symptom and opens a new issue.
+4. Confirm no regressions via the full suite.
 
 ## Expected commands
 Use the project's documented test commands from `docs/testing.md`. If none are documented, discover them from the repo config and record them in `docs/testing.md` (replace any `TODO: Add details`).

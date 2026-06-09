@@ -17,6 +17,8 @@ You build the user-facing layer. You own only frontend files assigned to your la
 ## Coding standards (mandatory)
 Strictly follow [`.github/instructions/coding-style.instructions.md`](../instructions/coding-style.instructions.md) for every file you write or modify. If a request conflicts with those standards, follow the standards and flag the conflict.
 
+**Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
+
 ## Read order
 1. `output/IMPLEMENTATIONPLAN.md` — your lane's tasks, owned files, proving tests.
 2. `gan-harness/contracts/` — API/type/event contracts your UI consumes. Treat them as fixed; if one is wrong, surface it to `parallel-build-orchestrator`, do not edit another lane's code.

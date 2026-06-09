@@ -65,6 +65,22 @@ Write the least amount of code that solves the problem correctly. Every line mus
 4. Validate: tests pass, no import errors, syntax clean.
 5. Don't leave dead code, unused imports, or stale references.
 
+## Bug-Fixing Discipline (MANDATORY)
+When asked to fix a bug, fix it *within* the existing design — do not bolt on new code that papers
+over the symptom and creates a second problem.
+1. **Diagnose first.** Read the current code and trace the actual root cause before writing anything.
+   State the root cause in one line before you change code.
+2. **Fix inside the existing logic.** Resolve it within the existing functions/flow/abstractions.
+   Do not add a parallel code path, wrapper, flag, or patch layer to sidestep the real defect.
+3. **No symptom-masking.** Do not swallow errors, add a special-case branch, or hardcode a value to
+   make the symptom disappear while the underlying cause remains.
+4. **No new bug for an old one.** Before finishing, confirm the fix does not break callers, regress
+   other behavior, or violate a published `gan-harness/contracts/` interface.
+5. **Reproduce, then prove.** Write/keep a failing test that reproduces the bug; the fix makes it pass
+   (TDD bug-fix variant). Run the full verification loop.
+6. **If the design itself is wrong**, stop and surface it — propose the design change rather than
+   silently working around it in code.
+
 ## Engineering Best Practices (at system edges)
 These apply only at **system boundaries** (public APIs, UI, external/model/data-source calls) — they
 do not contradict "no defensive validation in internal code". Inside a trust boundary, stay minimal.

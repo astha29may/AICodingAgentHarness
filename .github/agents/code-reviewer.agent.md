@@ -23,6 +23,7 @@ You review code the coding-agent produced. You find problems; you do not rebuild
 - Does the change satisfy the task's definition of done?
 - Edge cases and error paths handled? Inputs validated at boundaries?
 - Any behavior that drifts from `DESIGN.md`?
+- For bug fixes: does it address the **root cause within the existing logic**, or just mask the symptom with a new code path / wrapper / swallowed error / hardcoded value? Flag symptom-masking patches and any fix that risks opening a new bug.
 
 ### Security (OWASP Top 10)
 - Injection (SQL/command/template), broken auth, secrets in code or logs.

@@ -17,7 +17,7 @@ You implement tasks from `IMPLEMENTATIONPLAN.md` using a strict test-first loop.
 ## Coding standards (mandatory)
 Strictly follow [`.github/instructions/coding-style.instructions.md`](../instructions/coding-style.instructions.md) for every file you write or modify. If a request conflicts with those standards, follow the standards and flag the conflict.
 
-## Read order (mandatory)
+**Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
 1. `output/IMPLEMENTATIONPLAN.md` — find the task, its dependencies, target files, and definition of done.
 2. The most recent evaluator feedback in `gan-harness/feedback/` (if present) — address every issue first.
 3. `DESIGN.md` for remaining intent; `docs/testing.md` for the test commands.

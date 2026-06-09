@@ -17,6 +17,8 @@ You build APIs, services, and server-side business logic. You own only backend f
 ## Coding standards (mandatory)
 Strictly follow [`.github/instructions/coding-style.instructions.md`](../instructions/coding-style.instructions.md) for every file you write or modify. If a request conflicts with those standards, follow the standards and flag the conflict.
 
+**Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
+
 ## Read order
 1. `output/IMPLEMENTATIONPLAN.md` — your lane's tasks, owned files, proving tests.
 2. `gan-harness/contracts/` — the API/event contracts you publish or consume. You are usually the publisher of API contracts; keep them authoritative and notify the orchestrator on any change.
