@@ -1,0 +1,23 @@
+sequenceDiagram
+  participant U as You
+  participant ORC as parallel-build-orchestrator
+  participant FE as frontend-engineer
+  participant BE as backend-engineer
+  participant AIE as ai-engineer
+  participant DE as data-engineer
+  participant VE as verification-evaluator
+  U->>ORC: build from IMPLEMENTATIONPLAN.md
+  ORC->>ORC: split into lanes + write contracts
+  par parallel lanes
+    ORC->>DE: data tasks
+    ORC->>BE: backend tasks
+    ORC->>AIE: ai tasks
+    ORC->>FE: frontend tasks
+  end
+  DE-->>ORC: lane done
+  BE-->>ORC: lane done
+  AIE-->>ORC: lane done
+  FE-->>ORC: lane done
+  ORC->>ORC: merge + full verification
+  ORC->>VE: score against rubric
+  VE-->>U: PASS or ITERATE

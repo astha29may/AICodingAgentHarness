@@ -4,3 +4,8 @@
 .github/TechnicalGaps.md
 .github/DESIGN.md
 .github/tools/*.ps1
+
+# Throwaway/intermediate agent scripts — folder kept, contents ignored
+copilotscripts/*
+!copilotscripts/.gitkeep
+!copilotscripts/README.md

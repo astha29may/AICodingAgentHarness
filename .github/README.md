@@ -51,8 +51,7 @@ It also performs a **multi-perspective design evaluation** using internal person
 | Path | Purpose |
 | --- | --- |
 | `PROBLEMSTATEMENT.md` | Primary business and solution context input |
-| `.github/agents/technical-architect.agent.md` | Custom agent definition and operating constraints |
-| `.github/AGENTS.md` | Repo-level operating manual for architecture generation |
+| `.github/agents/technical-architect.agent.md` | Technical Architect agent definition, operating constraints, and full architecture-generation manual |
 | `.github/instructions/architecture.instructions.md` | Markdown quality and architecture-document standards |
 | `DESIGN.md` | Generated target architecture document |
 | `TechnicalGaps.md` | Generated unresolved gaps, risks, and missing-input document |

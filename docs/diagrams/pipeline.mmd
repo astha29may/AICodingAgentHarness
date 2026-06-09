@@ -1,0 +1,16 @@
+flowchart LR
+  PS[problem-statement-creation] --> TA[technical-architect]
+  TA --> IP[implementation-planner]
+  IP --> ORC[parallel-build-orchestrator]
+  ORC --> FE[frontend-engineer]
+  ORC --> BE[backend-engineer]
+  ORC --> AIE[ai-engineer]
+  ORC --> DE[data-engineer]
+  FE --> OBS[observability-engineer]
+  BE --> OBS
+  AIE --> OBS
+  DE --> OBS
+  OBS --> CR[code-reviewer]
+  CR --> VE[verification-evaluator]
+  VE -- ITERATE --> ORC
+  VE -- PASS --> DG[documentation-governance]
