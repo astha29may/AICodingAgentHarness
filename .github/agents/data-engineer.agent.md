@@ -46,7 +46,11 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - If a downstream lane needs a schema change, version the contract and notify the orchestrator.
 
 ## Handoff
-- Report completed tasks, owned files changed, and published/changed contracts to `parallel-build-orchestrator`.
+- When all lane tasks are verified and green, stop execution and output a structured final markdown block. Your parent orchestrator (`@parallel-build-orchestrator`) will capture this output via its subagent execution loop. Include:
+1. **Status**: Completed Task IDs.
+2. **File Manifest**: List of all files added or modified.
+3. **Contract Alignment**: Contracts successfully exposed or consumed.
+4. **Verification Log**: Confirmation that local build, test, lint, and typechecks passed successfully.
 
 ## Incremental refresh (data pipelines)
 - Document watermark/checkpoint logic, reprocessing behavior, and failure handling for any pipeline you build, per the module `documentation.md` standard.

@@ -44,5 +44,10 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - If blocked by a missing/incorrect contract, report to the orchestrator and continue other lane tasks.
 
 ## Handoff
-- Report completed tasks, owned files changed, and contracts consumed to `parallel-build-orchestrator`.
+- When all lane tasks are verified and green, stop execution and output a structured final markdown block. Your parent orchestrator (`@parallel-build-orchestrator`) will capture this output via its subagent execution loop. Include:
+1. **Status**: Completed Task IDs.
+2. **File Manifest**: List of all files added or modified.
+3. **Contract Alignment**: Contracts successfully exposed or consumed.
+4. **Verification Log**: Confirmation that local build, test, lint, and typechecks passed successfully.
+
 - The orchestrator integrates and runs the full verification + review.

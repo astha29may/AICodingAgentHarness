@@ -5,7 +5,7 @@ description: >
   retrieval (RAG), and evaluation hooks test-first, coding against shared contracts. Prefers Azure AI
   Foundry / Azure OpenAI and managed identity. Runs its own local verification before handing back to
   the orchestrator. Security-aware, human-in-the-loop.
-tools: [execute/runInTerminal, execute/getTerminalOutput, execute/sendToTerminal, execute/killTerminal, execute/runTask, execute/createAndRunTask, execute/runTests, execute/testFailure, execute/getTaskOutput, execute/runNotebookCell, read/readFile, read/problems, read/getNotebookSummary, read/readNotebookCellOutput, read/terminalSelection, read/terminalLastCommand, edit/createDirectory, edit/createFile, edit/editFiles, edit/editNotebook, edit/rename, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, web/fetch, web/githubRepo, web/githubTextSearch]
+tools: [execute/runInTerminal, execute/getTerminalOutput, execute/sendToTerminal, execute/killTerminal, execute/runTask, execute/createAndRunTask, execute/runTests, execute/testFailure, execute/getTaskOutput, read/readFile, read/problems, read/getNotebookSummary, read/readNotebookCellOutput, read/terminalSelection, read/terminalLastCommand, edit/createDirectory, edit/createFile, edit/editFiles, edit/editNotebook, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, web/fetch, web/githubRepo, web/githubTextSearch]
 argument-hint: >
   Name the AI lane task id(s) from IMPLEMENTATIONPLAN.md, or describe the model/prompt/RAG change.
 ---
@@ -45,4 +45,8 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - If blocked by a missing data/backend contract, report to the orchestrator and continue other lane tasks.
 
 ## Handoff
-- Report completed tasks, owned files changed, contracts exposed/consumed, and any evaluation hooks added to `parallel-build-orchestrator`.
+- When all lane tasks are verified and green, stop execution and output a structured final markdown block. Your parent orchestrator (`@parallel-build-orchestrator`) will capture this output via its subagent execution loop. Include:
+1. **Status**: Completed Task IDs.
+2. **File Manifest**: List of all files added or modified.
+3. **Contract Alignment**: Contracts successfully exposed or consumed.
+4. **Verification Log**: Confirmation that local build, test, lint, and typechecks passed successfully.
