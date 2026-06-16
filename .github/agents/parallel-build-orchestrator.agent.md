@@ -7,7 +7,7 @@ description: >
   then coordinates merge and a single verification pass. The fan-out/fan-in coordinator of the harness.
   Human-in-the-loop, no deployments.
 tools: [execute/getTerminalOutput, execute/runTask, execute/createAndRunTask, execute/runInTerminal, execute/runTests, read/problems, read/readFile, read/terminalLastCommand, read/getTaskOutput, agent/runSubagent, edit/createDirectory, edit/createFile, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, azure-mcp/search,agent]
-agents: ['parallel-build-orchestrator', 'frontend-engineer', 'backend-engineer', 'ai-engineer', 'data-engineer']
+agents: ['parallel-build-orchestrator', 'frontend-engineer', 'backend-engineer', 'ai-engineer', 'data-engineer','code-reviewer', 'observability-engineer', 'verification-evaluator']
 argument-hint: >
   Point at the approved IMPLEMENTATIONPLAN.md; optionally name which lanes to run (frontend, backend, ai, data).
 
