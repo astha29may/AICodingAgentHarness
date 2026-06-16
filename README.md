@@ -1,10 +1,50 @@
-# AI Agent Harness for Developers and Architects
+# AI Coding Agent Harness
 
-This repository is an end-to-end AI agent harness that takes a project from problem
-statement → architecture → plan → parallel build → verification → documentation. It is
-configured for AI coding agents following the "Setting Up your repo for AI Coding Agents" guidance.
+The **AI Coding Agent Harness** is an end-to-end, multi-agent system that takes a software project
+from a raw problem statement all the way to verified, documented code — **problem statement →
+architecture → plan → parallel build → verification → documentation**. It is built for developers
+and architects who want AI coding agents to do real engineering work under guardrails, not just
+autocomplete snippets.
 
-## AI Agent Harness
+### What it is
+
+A set of purpose-built **agents** (in [.github/agents/](.github/agents/)), reusable **skills**
+(in [.github/skills/](.github/skills/)), and path-scoped **instructions**
+(in [.github/instructions/](.github/instructions/)) that turn VS Code + GitHub Copilot into a
+repeatable software-delivery pipeline. Each stage of the pipeline has a dedicated agent, work
+**fans out** to specialist build lanes that run in parallel, and a **generator-evaluator loop**
+scores every iteration until it meets an acceptance bar.
+
+### What it does
+
+- **Captures the problem** as a strict, fact-only `PROBLEMSTATEMENT.md` (optionally grounded in
+  Microsoft 365 context via WorkIQ).
+- **Designs the solution** as a Microsoft/Azure-first `DESIGN.md` plus a `TechnicalGaps.md`.
+- **Plans the build** as a sequenced `IMPLEMENTATIONPLAN.md` with lanes, a file-level change map,
+  and a weighted acceptance rubric.
+- **Builds in parallel** across frontend, backend, AI, and data lanes with non-overlapping file
+  ownership and explicit interface contracts (or a single `coding-agent` for small changes).
+- **Verifies and scores** the result test-first (build, test, lint, typecheck) and iterates against
+  the rubric until it passes.
+- **Governs documentation** so the whole system stays onboarding-ready and self-describing.
+
+### Who it's for
+
+Developers and solution architects setting up a repository for AI coding agents, following the
+"Setting Up your repo for AI Coding Agents" guidance. Every agent is **human-in-the-loop**, prefers
+**Microsoft/Azure-native** services, and never deploys or runs destructive operations on its own.
+
+### Core concepts
+
+| Concept | What it means here |
+| --- | --- |
+| **Agent** | A role-specialized Copilot persona (problem, design, plan, build lanes, review, eval, docs). |
+| **Skill** | A reusable workflow an agent invokes (TDD, parallel-build, verification loop, doc governance). |
+| **Lane** | A build workstream (frontend / backend / AI / data) that owns disjoint files. |
+| **Contract** | An interface (API/schema/event/type) lanes code against instead of each other. |
+| **Generator-evaluator loop** | The build agent generates; the evaluator scores against the rubric and returns `ITERATE` or `PASS`. |
+
+## Pipeline overview
 
 This repo is a problem-statement → design → coding agent harness. Each lane has a
 dedicated agent, and a generator-evaluator loop verifies the build.

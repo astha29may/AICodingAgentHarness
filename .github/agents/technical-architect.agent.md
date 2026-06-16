@@ -2,7 +2,7 @@
 name: technical-architect
 description: >
   Use when you need a Microsoft-first solution architecture from PROBLEMSTATEMENT.md, including DESIGN.md and TechnicalGaps.md, debate-driven review, Azure service mapping, approval checkpoints, and a lightweight multi-model quality gate. Prefer lean modern agent designs based on reusable capabilities, clear integration boundaries, and minimal overengineering across varied problem statements.
-tools: [execute/runNotebookCell, execute/getTerminalOutput, execute/killTerminal, execute/sendToTerminal, execute/runTask, execute/createAndRunTask, execute/runInTerminal, execute/runTests, execute/testFailure, read/getNotebookSummary, read/problems, read/readFile, read/viewImage, read/readNotebookCellOutput, read/terminalSelection, read/terminalLastCommand, read/getTaskOutput, edit/createDirectory, edit/createFile, edit/createJupyterNotebook, edit/editFiles, edit/editNotebook, edit/rename, search/changes, search/codebase, search/fileSearch, search/listDirectory, search/textSearch, search/usages, web/fetch, web/githubRepo, web/githubTextSearch, azure-mcp/cosmos, azure-mcp/search, azure-mcp/sql, workiq/accept_eula, workiq/ask_work_iq, workiq/get_debug_link]
+tools: [execute/getTerminalOutput, execute/killTerminal, execute/createAndRunTask, execute/runInTerminal, read, agent, edit/createDirectory, search, web, azure-mcp/cosmos, azure-mcp/search, azure-mcp/sql, 'workiq/*']
 argument-hint: >
   Describe the system/problem context and the desired depth (quick draft or full architecture review).
 ---
