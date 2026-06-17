@@ -47,3 +47,8 @@ Write to `gan-harness/feedback/feedback-<NNN>.md` (zero-padded iteration), conta
 ## Boundaries
 - Read-mostly: you may create feedback/report files and run tests, but do not implement features or deploy.
 - No destructive operations; no production data changes.
+
+## Handoff
+When evaluation is complete:
+- If `ITERATE`: invoke `@coding-agent` with feedback and the updated rubric score so they can iterate.
+- If `PASS`: write `gan-harness/build-report.md` with score progression. Stop and report success to the invoking human or upstream orchestrator.

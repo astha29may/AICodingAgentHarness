@@ -96,6 +96,7 @@ orchestrator and use the single `coding-agent` instead.
 | Coding Agent (single-lane Generator) | [.github/agents/coding-agent.agent.md](.github/agents/coding-agent.agent.md) | Test-first implementation when not parallelizing |
 | Code Reviewer | [.github/agents/code-reviewer.agent.md](.github/agents/code-reviewer.agent.md) | Severity-ranked review, PASS / CHANGES REQUIRED |
 | Verification Evaluator | [.github/agents/verification-evaluator.agent.md](.github/agents/verification-evaluator.agent.md) | Rubric scoring + iteration feedback |
+| Agent Feedback (retrospective) | [.github/agents/agent-feedback.agent.md](.github/agents/agent-feedback.agent.md) | Compares an agent's spec vs its session behavior; logs deviations + proposes spec improvements |
 | Documentation Governance | [AGENTS.md](AGENTS.md) | Enterprise-standard, onboarding-ready docs |
 
 ### Skills

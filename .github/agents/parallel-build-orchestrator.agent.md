@@ -56,3 +56,8 @@ You split an approved plan into independent lanes, dispatch each to a specialist
 ## Output
 - `gan-harness/contracts/*.md` — interface contracts.
 - A short dispatch plan: lane → tasks → owned files → upstream contracts → status.
+
+## Handoff
+When all lanes are merged and verified locally:
+- Invoke `@code-reviewer` to review the integrated change for correctness, security, and alignment.
+- Then invoke `@verification-evaluator` to score against the acceptance rubric.

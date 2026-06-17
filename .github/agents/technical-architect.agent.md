@@ -94,3 +94,7 @@ Do not request broad permissions by default. Use least-privilege Graph scopes an
 Use `github/search` to find similar architectures, reference implementations, and best-practice repos.
 
 **All data loading is read-only; use only to inform architecture decisions.**
+
+## Handoff
+When `output/DESIGN.md` and `output/TechnicalGaps.md` are approved:
+- Invoke `@implementation-planner` to convert the architecture into an actionable, sequenced task plan (`output/IMPLEMENTATIONPLAN.md`).
