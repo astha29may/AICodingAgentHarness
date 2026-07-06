@@ -26,8 +26,10 @@ VS Code cannot auto-launch you when a chat ends. Use one of these:
 | Inline | Right after a session, in the same chat | The transcript is already in context. |
 | Standalone | Shortly after, in a new chat | Query the chronicle **session store** (`session_store_sql`) for the session. |
 | Batch | End of day / periodically | Query the store for the last N sessions and review each. |
+| Solution closeout | After a build reaches `PASS` | Review the winning session and every participating harness agent together, then write/update their ledgers. |
 
 If the user says "recent", default to the last 5 sessions in the store.
+If the user says "close out this solution", review every harness agent that materially participated in the session, not just one target agent.
 
 ## Inputs
 1. **Expected behavior** — the target agent's spec at `.github/agents/<name>.agent.md` (role, read
@@ -36,10 +38,13 @@ If the user says "recent", default to the last 5 sessions in the store.
    and the path-scoped [`.github/instructions/`](../instructions/) files.
 2. **Actual behavior** — the session: the in-context transcript, or rows from `session_store_sql`
    (`sessions`, `turns`, `session_files`, `session_refs`). Use the `chronicle` skill for query patterns.
+3. **Participation set** — in solution-closeout mode, infer which harness agents actually participated
+   from the transcript, tool usage, changed files, and handoff messages before writing any ledger entry.
 
 ## Procedure
-1. **Identify the agent.** Confirm which agent ran. If unclear, ask one question, then proceed.
-2. **Extract the contract.** From the spec, list the agent's explicit obligations: required steps,
+1. **Identify the agent or agent set.** Confirm which agent ran. If unclear, ask one question, then proceed.
+   In solution-closeout mode, produce the list of participating harness agents first.
+2. **Extract the contract.** From each spec, list the agent's explicit obligations: required steps,
    read order, output location (e.g. `output/` vs repo root), boundaries (no deploy/destructive,
    ≤1 clarifying question), and definition of done.
 3. **Replay the session.** Walk the transcript/turns and check each obligation: met, partially met,
@@ -52,6 +57,7 @@ If the user says "recent", default to the last 5 sessions in the store.
    - **Positive** — did something well worth reinforcing (so improvements don't regress it).
 5. **Find root cause.** For recurring deviations, decide whether the spec is **ambiguous, missing a
    rule, or contradictory** — that is what you fix, not the one-off symptom.
+6. **Synthesize learnings.** In solution-closeout mode, separate agent-specific gaps from shared cross-cutting learnings so a repeated issue can be fixed once at the right layer.
 
 ## Outputs
 ### 1. Per-agent ledger (always)
@@ -80,10 +86,17 @@ dedicated section at the end:
 Keep this section curated: merge/replace stale lines, never let it grow unbounded, and never paste
 raw transcript. The rest of the spec stays clean.
 
+### 3. Solution-closeout bundle (when reviewing a full build)
+When invoked after a solution is complete:
+- Write or update ledger entries for **every participating harness agent**.
+- Produce a short summary of cross-cutting learnings and which agent specs they belong in.
+- If the user explicitly approved self-improvement for this closeout run, apply the curated spec edits immediately after writing the ledgers; otherwise stop at the proposed diffs.
+
 ## Rules
 - **Evidence or it didn't happen.** Every deviation cites a turn/file/session id. No speculation.
 - **Spec edits are human-in-the-loop.** Never modify an agent file without explicit approval; the
   ledger you may write freely.
+- In solution-closeout mode, explicit approval may be provided once for the whole retrospective run; if absent, do not infer it.
 - **Fix the spec, not the symptom.** Prefer one clear rule over many special cases. Don't bloat specs.
 - **Stay in your lane.** Don't re-run or "finish" the target agent's task.
 - **Never copy secrets/PII** from a session into the ledger; reference, don't reproduce.
@@ -93,3 +106,4 @@ raw transcript. The rest of the spec stays clean.
 - Ledger entries are written to `gan-harness/feedback/agents/<agent-name>.md` for human review and trend analysis.
 - Proposed spec improvements require **explicit human approval** before any edit to `.github/agents/<name>.agent.md`.
 - If the same Major/Blocker recurs across ≥2 sessions for one agent, flag it to the human as a systemic spec defect, not a one-off.
+- After a solution reaches `PASS`, prefer running `agent-feedback` once in solution-closeout mode so the winning session becomes training data for the next run.

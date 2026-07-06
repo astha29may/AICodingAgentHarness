@@ -34,16 +34,22 @@ You review code the coding-agent produced. You find problems; you do not rebuild
 - A failing-first test exists for the new behavior.
 - Coverage meets the plan's target; edge cases tested, not just happy path.
 - Tests are deterministic (no time/order/network flakiness).
+- Flag vacuous tests (`assert True`, no meaningful assertion, mocked code proving itself) and false-green coverage that would pass if the feature were broken.
+- If degraded-dependency behavior is required, tests must fail on incorrect behavior rather than skip the scenario and still pass.
 
 ### Maintainability
 - Matches existing patterns and naming; no dead code or unused exports.
 - No over-engineering: abstractions justified by real reuse.
 - Scope limited to the task's file-level change map.
 - Conforms to [`.github/instructions/coding-style.instructions.md`](../instructions/coding-style.instructions.md) — flag any violation (overengineering, speculative abstractions, wrapper classes, duplicated variant logic, unnecessary defensive code).
+- Flag copy-paste endpoints, redundant helper or deploy scripts, and duplicate implementations that should have been consolidated into the existing path.
+- Flag any removal of optional modes, flags, or fast paths that happened without explicit user approval.
+- For cleanup/revert/simplify requests, flag added files, new abstractions, or net-new code paths unless they are strictly required for correctness.
 
 ### Operability
 - Logging/metrics/traces where the design calls for them.
 - Failure modes degrade safely.
+- Flag code-to-infra drift: if code behavior changed but the matching infra, environment contract, identity setup, or execute_local/cloud path was not updated, treat it as a review finding.
 
 ### Boundary best practices (system edges only)
 - Edge input validation and safe error responses (no stack traces/secrets/PII leaked).

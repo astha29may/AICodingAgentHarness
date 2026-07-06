@@ -41,7 +41,12 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - Set timeouts, bounded retries with backoff, and a defined fallback for model/inference calls; handle rate limits; cap tokens and cost per call.
 - Apply content safety / responsible-AI checks on inputs and outputs; do not put PII or secrets in prompts or logs.
 - Secrets via Key Vault / managed identity, never in code or prompts. Validate and bound model inputs/outputs; guard against prompt injection in retrieved content.
-- Make model choice, temperature, and token limits explicit and configurable.
+- Make model choice, temperature, token limits, and deployment identifiers explicit and configurable. Pin the model/deployment per agent path unless the task explicitly calls for dynamic selection.
+- Zero-hardcoding rule: do not hardcode business mappings, extraction rules, or prompt substitutions in code when they belong in config, data, prompt assets, or deterministic parsing utilities.
+- Validate every prompt or rule placeholder before runtime so missing variables fail fast in tests instead of silently degrading answers.
+- Accuracy is the gate for caching or latency optimizations: do not keep a faster path that measurably degrades answer quality or extraction correctness.
+- Measure accuracy alongside cache hit rate and latency whenever caching or prompt changes are introduced.
+- Log model round-trips, retrieval/context size, and fallback path selection at a safe structured level without exposing prompt contents or secrets.
 - If blocked by a missing data/backend contract, report to the orchestrator and continue other lane tasks.
 
 ## Handoff

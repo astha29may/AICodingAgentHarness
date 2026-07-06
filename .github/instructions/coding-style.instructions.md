@@ -21,6 +21,13 @@ design diverge, code follows design.
 ### Core Belief
 Write the least amount of code that solves the problem correctly. Every line must earn its place.
 
+### Minimal-Change Gate (MANDATORY BEFORE WRITING CODE)
+1. **Cleanup first.** If the request can be solved by deleting, reverting, or simplifying existing code, do that instead of adding new code.
+2. **No new line without necessity.** Add a line only if the target behavior cannot work correctly without it.
+3. **Prove necessity in one sentence.** Before adding non-trivial code, state why an edit/removal-only approach is insufficient.
+4. **Prefer in-place fixes.** Modify existing logic instead of introducing parallel paths, replacement modules, or duplicate helpers.
+5. **Default to subtraction.** If both options work, prefer the one with fewer moving parts and fewer lines.
+
 ### Design Principles
 1. **No overengineering.** Think before adding each code block. If it's not needed now, don't write it.
 2. **Minimal code.** The smallest implementation that works. No speculative abstractions.
@@ -64,6 +71,7 @@ Write the least amount of code that solves the problem correctly. Every line mus
 3. If removing code makes things simpler, remove it.
 4. Validate: tests pass, no import errors, syntax clean.
 5. Don't leave dead code, unused imports, or stale references.
+6. For cleanup-oriented requests (revert, simplify, dedupe, remove), do not add new features, files, or abstractions unless explicitly asked.
 
 ## Bug-Fixing Discipline (MANDATORY)
 When asked to fix a bug, fix it *within* the existing design — do not bolt on new code that papers

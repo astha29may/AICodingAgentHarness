@@ -52,6 +52,7 @@ DO NOT design solutions. No architecture, no tech stack, no "we should use X".
 DO NOT expand scope. Stay strictly within the inputs.
 No personas, no KPIs, no invented metrics, no fabricated stakeholders.
 The user's basic description is context for framing — direct claims in it ("the customer is X", "data lives in Y") are facts; framing language ("we want to help them") is not.
+Preserve the exact template headings and their order when generating or refining `output/PROBLEMSTATEMENT.md`. Do not rename headings for style.
 Workflow
 Step 1 — Confirm Inputs
 Verify all three inputs present. If any missing, ask via AskUserQuestion (single round).
@@ -73,6 +74,8 @@ Step 5 — Generate PROBLEMSTATEMENT.md
 Write to output/PROBLEMSTATEMENT.md using the strict format below. Confirm the file exists before reporting success.
 
 Output Format (STRICT)
+Use the exact headings below in the exact order shown.
+
 # Problem Statement — {Project / Customer Name}
 
 ## Executive Summary
@@ -123,6 +126,7 @@ Every line traces to a source — no invented details
 No solution design, architecture, or tech choices
 No KPIs, personas, or success metrics unless explicitly stated
 Missing sections explicitly marked Not specified in provided context
+Template headings preserved exactly and in order
 File saved to output/PROBLEMSTATEMENT.md and confirmed
 Sources Referenced section lists every input actually consulted
 Delivery

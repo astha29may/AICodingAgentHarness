@@ -19,6 +19,11 @@ problem statement → architecture → plan → parallel build → verification 
 Global constraints for all agents: human-in-the-loop only (no infra execution or destructive
 actions), prefer Microsoft/Azure-native services, ask one clarifying question at a time when blocked.
 
+Additional mandatory execution posture for all build work:
+- Cleanup-first and minimal-change by default.
+- If a request is to simplify, revert, or clean up, do not generate new subsystems or extra code paths.
+- Add code only when required for correctness and only after confirming an edit/remove path is insufficient.
+
 ## File-placement rules (all agents)
 - **Harness deliverables go in `output/`.** The pipeline artifacts are `output/PROBLEMSTATEMENT.md`,
   `output/DESIGN.md`, `output/TechnicalGaps.md`, `output/architecture-first-cut.drawio`, and

@@ -36,12 +36,16 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 
 ## Rules
 - Edit only files your lane owns. Never touch frontend/data/ai files directly; coordinate via contracts.
+- Reuse and consolidate shared backend logic. Factor common behavior across endpoints or handlers instead of copy-pasting near-identical implementations.
 - Security by default (OWASP Top 10): validate inputs at boundaries, parameterized queries, authn/authz on every protected route, no secrets in code, least privilege.
 - Return correct HTTP status codes and safe, structured error responses — never leak stack traces, secrets, or internal detail to callers.
 - Make write operations idempotent where the contract allows; use explicit transaction boundaries for multi-step writes.
 - Set timeouts and bounded retries (transient failures only) on every downstream/data/AI call; fail gracefully.
+- Cache keys must be derived from stable request semantics only; exclude live response data, mutable outputs, or per-request values that distort reuse or correctness.
+- Any caching change must record the accuracy tradeoff plainly: expected hit ratio, TTL/freshness choice, and why the cache does not materially degrade answer quality.
 - Paginate list endpoints; do not return unbounded result sets.
 - Emit structured logs with a correlation id; never log secrets or PII.
+- Preserve the real hosting model in code and infra assumptions. Do not treat Azure Functions, Function Apps, and Container Apps as interchangeable runtimes.
 - Prefer Microsoft/Azure-native SDKs and managed identity over hand-rolled auth or stored secrets.
 - Stop and surface to the human before anything irreversible (schema drops, deploys, destructive migrations).
 - If blocked by a missing data/ai contract, report to the orchestrator and continue other lane tasks.
@@ -52,3 +56,4 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 2. **File Manifest**: List of all files added or modified.
 3. **Contract Alignment**: Contracts successfully exposed or consumed.
 4. **Verification Log**: Confirmation that local build, test, lint, and typechecks passed successfully.
+5. **Canary Checks**: Results for any critical endpoint smoke or canary checks run as part of local verification.

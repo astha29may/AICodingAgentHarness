@@ -34,6 +34,7 @@ You split an approved plan into independent lanes, dispatch each to a specialist
 2. **Contracts before code** — for every cross-lane dependency, define an explicit interface contract (API shape, schema, event, type) and write it to `gan-harness/contracts/<name>.md` BEFORE lanes start. Lanes code against the contract, not each other.
 3. **Dependency gating** — a lane task starts only when its upstream contract exists. Pure-leaf lanes start immediately.
 4. **One owner per file** — record file ownership in the plan's change map. If two lanes need the same file, the orchestrator owns the merge of that file.
+5. **One verification surface** — after lane fan-in, run one integrated offline/local verification pass from the merged workspace before any cloud-oriented validation is considered.
 
 ## Execution model (multi-system)
 - Prefer isolated workspaces per lane using git worktrees / branches: one branch per lane (`lane/frontend`, `lane/backend`, ...).
@@ -50,14 +51,17 @@ You split an approved plan into independent lanes, dispatch each to a specialist
 ## Rules
 - Never let two lanes edit the same file concurrently.
 - Keep contracts authoritative — a lane changing a contract must surface it to the orchestrator before others consume it.
+- Publish the lane ownership map and contract list before dispatch so specialists have a stable boundary and do not guess ownership.
 - If a lane is blocked, continue the unblocked lanes and report the blocker.
 - No deployments or destructive operations.
 
 ## Output
 - `gan-harness/contracts/*.md` — interface contracts.
 - A short dispatch plan: lane → tasks → owned files → upstream contracts → status.
+- A final participant list: which harness agents actually ran and should be included in the closeout retrospective.
 
 ## Handoff
 When all lanes are merged and verified locally:
 - Invoke `@code-reviewer` to review the integrated change for correctness, security, and alignment.
 - Then invoke `@verification-evaluator` to score against the acceptance rubric.
+- After `PASS`, ensure `@agent-feedback` runs once in solution-closeout mode against the participant list so the completed build feeds back into the agent specs.

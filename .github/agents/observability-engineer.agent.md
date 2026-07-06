@@ -48,7 +48,8 @@ If they are silent or incomplete:
    implement the baseline — do not wait for the plan to be updated.
 
 ## What to instrument (at boundaries, not internals)
-- **Structured logging** — JSON/structured logs at every system edge (API requests, jobs, external/model/data calls). Include a **correlation / request id** propagated end-to-end. Log levels used consistently.
+- **Structured logging** — JSON/structured logs at every system edge (API requests, jobs, external/model/data calls). Include a **correlation / request id** propagated end-to-end across ingress, async hops, and downstream calls. Log levels used consistently.
+- **Module coverage** — every deployable or runtime module must bind into the same correlation-id story; do not leave function apps, workers, or helper modules outside trace propagation.
 - **Metrics** — the signals the design cares about (RED: rate, errors, duration for services; throughput/lag for pipelines; token/cost for AI). Expose via the design's metrics backend.
 - **Distributed tracing** — spans across service/lane boundaries so one request/job/run is traceable end-to-end (OpenTelemetry or the design's tracer).
 - **Health checks** — liveness/readiness endpoints or equivalent for each deployable.
@@ -59,7 +60,7 @@ If they are silent or incomplete:
 - Instrument only what the design requires — no telemetry sprawl. Every signal must answer a real operational question.
 - Add telemetry without altering feature behavior or breaking published `gan-harness/contracts/` interfaces.
 - Keep overhead bounded: sampling for high-volume traces, async/batched exporters; no synchronous logging on hot paths.
-- Tie each signal back to a failure mode in `DESIGN.md` ("this alert detects X").
+- Tie each signal back to a failure mode in `DESIGN.md` ("this alert detects X"). Define at least one alert per known failure mode, including timeout-style failures such as `rule_timeout` when that path exists.
 - Where behavior is testable (log shape, correlation-id propagation, health endpoint), add a test for it.
 
 ## Workflow

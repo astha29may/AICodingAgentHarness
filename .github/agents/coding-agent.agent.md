@@ -34,6 +34,13 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - Never write production code before a failing test exists for it.
 - Make the smallest change that satisfies the task's definition of done. No scope creep.
 - Match existing patterns, naming, and structure in the repo. Read before you edit.
+- Reuse before creating: search for an existing script, command, workflow, or helper before adding a new one. If a required file was deleted, recover it from git history instead of recreating a parallel version.
+- Fix in place at the root cause. Do not sidestep the existing implementation by dropping in a second code path, duplicate script, or replacement subsystem.
+- Respect the user's mode exactly: if they asked to inspect, review, or suggest only, do not edit files.
+- Preserve optional modes, flags, and fast paths unless the user explicitly approves removing them.
+- Keep environment-specific values out of code. Ban hardcoded business or environment maps in implementation logic; put deploy/runtime/model configuration in config, infra, or model settings instead.
+- When a code change affects deployment/runtime behavior, update the coupled infra/env/managed-identity/docs surfaces in the same change so code and infrastructure do not drift.
+- If local or cloud execution paths exist, update `execute_local` and `execute_cloud` in the same change whenever behavior, prerequisites, or runtime wiring changes.
 - Security by default: validate inputs at boundaries, no secrets in code, parameterized queries, least privilege. Watch for the OWASP Top 10.
 - Prefer Microsoft/Azure-native SDKs and managed identity over hand-rolled auth or secrets.
 - Stop and surface to the human before anything irreversible (deletes, force-push, schema drops, deploys).
@@ -53,3 +60,4 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 ## Handoff
 - When tasks pass locally, hand off to `code-reviewer` and `verification-evaluator`.
 - Re-enter this loop on evaluator feedback until the acceptance rubric passes.
+- For performance-sensitive changes, include a one-line before/after metric summary (for example latency, token use, or rows processed) and a short manifest of any coupled files changed outside the main code path.

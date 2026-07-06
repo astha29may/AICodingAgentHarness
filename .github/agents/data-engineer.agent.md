@@ -38,11 +38,16 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - Edit only files your lane owns. Coordinate via contracts.
 - Migrations must be reversible and reviewed; never run a destructive migration against shared/production data — surface to the human first.
 - Validate data quality at the ingestion boundary (schema, types, required fields); quarantine or reject bad records rather than silently corrupting downstream.
+- Compare the declared schema or data dictionary against the incoming physical shape before loading. When they differ, surface or record the diff instead of coercing blindly.
+- For new source files or refreshed data dictionaries, inspect and reconcile the latest source of truth before loading; do not assume older fixtures or parquet snapshots still match.
 - Make pipelines idempotent and safe to re-run; design an explicit backfill/reprocess path.
 - Index for the actual query/access patterns; avoid N+1 and unbounded scans.
 - Classify sensitive data; ensure encryption in transit and at rest; minimize PII and never log it.
 - Parameterized queries only; no secrets in code; access via managed identity / Key Vault references.
 - Prefer Azure-native data services where the design allows.
+- Use Excel-based ingestion or exports only when the user explicitly requests Excel. Do not convert formats gratuitously.
+- For schema-shaping changes, produce a short schema-diff report in the contract, test fixture, or handoff notes so downstream lanes can verify what moved.
+- For workflow changes that are not explicitly authorized, suggest the reconciliation/load plan first and apply only after approval.
 - If a downstream lane needs a schema change, version the contract and notify the orchestrator.
 
 ## Handoff

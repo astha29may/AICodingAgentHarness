@@ -11,6 +11,13 @@ Global constraints:
 - Human-in-the-loop only; no infra execution.
 - Prefer Microsoft/Azure-native services by default.
 - Ask one clarifying question at a time when blocked.
+- Cleanup-first default: if the objective is revert/simplify/cleanup, prefer editing or removing existing code over generating new code.
+- Add code only when required for correctness; if behavior can be fixed without new lines, do not add them.
+
+Pre-final-response enforcement:
+- Before sending a final response, run a documentation-governance checklist pass against the requested scope.
+- Verify docs are complete, grounded in repository evidence, and aligned with code/config/test/infra changes.
+- If required documentation sections or facts are missing, add `TODO: Add details` rather than guessing.
 
 ## File-placement rules (all agents)
 - **Harness deliverables go in `output/`.** The pipeline artifacts are `output/PROBLEMSTATEMENT.md`,

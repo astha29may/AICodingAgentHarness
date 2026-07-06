@@ -12,6 +12,8 @@ Working directory for the generator-evaluator loop.
 - `feedback/agents/<agent>.md` — per-agent retrospective ledgers written by the `agent-feedback`
   agent: severity-ranked deviations of expected vs actual behavior per session, with evidence.
   See [feedback/agents/README.md](feedback/agents/README.md).
+- After `build-report.md` is written for a passing solution, run `agent-feedback` in solution-closeout
+  mode so the just-completed session updates these ledgers for every participating harness agent.
 
 See [templates/feedback-000.template.md](../templates/feedback-000.template.md) for the feedback format
 and [templates/build-report.template.md](../templates/build-report.template.md) for the final report format.

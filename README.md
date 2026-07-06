@@ -130,6 +130,11 @@ and returns `ITERATE` or `PASS`. The build addresses feedback each round until
 the pass threshold (default 7.0/10) is met, then a final `gan-harness/build-report.md`
 is written.
 
+After a solution reaches `PASS`, run the `agent-feedback` retrospective in solution-closeout mode.
+That closeout reviews the session transcript and session history for each participating harness
+agent, appends evidence-backed entries to `gan-harness/feedback/agents/<agent>.md`, and then applies
+curated spec updates only when the closeout run was explicitly approved to do so.
+
 Repo-wide Copilot behavior is defined in
 [.github/copilot-instructions.md](.github/copilot-instructions.md).
 

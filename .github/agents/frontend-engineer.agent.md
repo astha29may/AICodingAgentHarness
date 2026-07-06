@@ -39,6 +39,11 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - Validate and encode user input; avoid XSS (escape output, no unsafe HTML injection); no secrets in client code.
 - Handle every async state at the UI boundary: loading, empty, and error states — never leave a dead/blank screen on failure.
 - Accessibility to WCAG 2.1 AA: semantic markup, ARIA only where needed, keyboard navigation, labels, sufficient contrast.
+- Verify visible behavior, not just structure: check contrast, input visibility, spacing, and alignment against the design reference or screenshot when one exists.
+- On dark themes, explicitly verify text inputs, textareas, and chat bars remain visible, legible, and correctly bounded before calling the task done.
+- When a shared frontend asset, config, or package affects multiple apps, update and verify every impacted app rather than stopping at the first surface you touched.
+- Prefer a screenshot or pixel-diff gate when the repo already has visual regression coverage or when the task is explicitly visual.
+- When the task has a screenshot or visual reference, validate against it before reporting completion.
 - Add a third-party UI dependency only when it earns its place (bundle cost, maintenance); prefer platform/framework built-ins.
 - Match existing component patterns and naming.
 - If blocked by a missing/incorrect contract, report to the orchestrator and continue other lane tasks.
