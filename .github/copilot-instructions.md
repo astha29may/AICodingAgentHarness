@@ -14,6 +14,17 @@ Global constraints:
 - Cleanup-first default: if the objective is revert/simplify/cleanup, prefer editing or removing existing code over generating new code.
 - Add code only when required for correctness; if behavior can be fixed without new lines, do not add them.
 
+Harness execution (MANDATORY): When a harness pipeline stage is requested (problem statement,
+design, plan, build, review, verification), **invoke the corresponding agent as a subagent** with
+the `runSubagent` tool — do not read the agent's spec and perform the work inline. Delegating is
+what enables parallelism, isolation, and independent verification; impersonating an agent defeats
+the harness. Dispatch independent lanes (frontend/backend/AI/data) as concurrent subagents, and
+serialize only real dependencies. Gather required inputs up front (subagents are stateless and
+cannot pause to ask), then pass explicit context and deliverable paths in the subagent prompt. Only
+fall back to inline execution if the required agent is genuinely unavailable — and say so explicitly.
+See the "Harness execution policy" section in [`AGENTS.md`](../AGENTS.md) for the full rule and the
+stage → agent mapping.
+
 Pre-final-response enforcement:
 - Before sending a final response, run a documentation-governance checklist pass against the requested scope.
 - Verify docs are complete, grounded in repository evidence, and aligned with code/config/test/infra changes.

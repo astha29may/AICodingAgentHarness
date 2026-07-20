@@ -11,6 +11,7 @@
 | Test | PASS \| FAIL | TODO |
 | Lint | PASS \| FAIL | TODO |
 | Typecheck | PASS \| FAIL | TODO |
+| Test-integrity | PASS \| FAIL | TODO: no tests weakened/removed vs previous iteration |
 
 ## Score Table
 | Criterion | Raw (0–10) | Weight | Weighted |
@@ -24,6 +25,13 @@
 
 ## Verdict
 `ITERATE` | `PASS` (PASS requires total ≥ 7.0 and no blocker)
+
+## Score Progression
+| Iteration | Weighted total | Verdict |
+| --- | --- | --- |
+| <NNN> | 0.00 | ITERATE \| PASS |
+
+> Regression note: if this total is below the previous iteration's, name the regressed criterion here and prioritize restoring it. Budget: stop at `MAX_ITERATIONS` (default 5) and surface to the human.
 
 ## Blockers (cap the score)
 - TODO: build/test failures, security holes, missing required tests.

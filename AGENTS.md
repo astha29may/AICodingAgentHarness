@@ -34,6 +34,41 @@ Additional mandatory execution posture for all build work:
   infra, or deliverables there — use `src/`, `tests/`, `infra/`, or `output/`.
 - Generator-evaluator working files stay under `gan-harness/` (`feedback/`, `contracts/`, `build-report.md`).
 
+## Harness execution policy — invoke agents, do not impersonate them (MANDATORY)
+The value of this harness comes from delegating each pipeline stage to its dedicated agent so work
+can run in parallel and each agent operates under its own spec. When a harness stage is requested,
+the orchestrating assistant **must invoke the corresponding agent as a subagent** (via the
+`runSubagent` tool) rather than reading the agent's spec and performing the work itself inline.
+
+- **Delegate, never impersonate.** Do not "act as" a harness agent by following its `.github/agents/*.md`
+  spec inline. Invoke the actual agent as a subagent. Applying an agent's spec yourself defeats the
+  purpose of the harness (no parallelism, no isolation, no independent verification).
+- **Map each stage to its agent:**
+  - Problem statement → `problem-statement-creation`
+  - Architecture/design → `technical-architect`
+  - Implementation plan → `implementation-planner`
+  - Parallel build coordination → `parallel-build-orchestrator`
+  - Build lanes → `frontend-engineer`, `backend-engineer`, `ai-engineer`, `data-engineer`
+  - Single small change → `coding-agent`
+  - Review → `code-reviewer`
+  - Scoring/verification → `verification-evaluator`
+- **Parallelize independent lanes.** When a stage has independent workstreams (e.g., the build lanes
+  with non-overlapping file ownership), dispatch them as concurrent subagents. Only serialize when
+  there is a real dependency (design depends on problem statement, plan depends on design, etc.).
+- **Gather inputs before dispatch.** Because subagents are stateless and cannot pause to ask the
+  user mid-run, the orchestrator collects required inputs first (project name, description, source
+  folders/meetings/emails, EULA acceptance for WorkIQ, approval checkpoints), then passes them in the
+  subagent prompt. Ask the user one clarifying question at a time only while gathering these inputs.
+- **Pass explicit context.** Each subagent prompt must name the exact deliverable path(s) it reads
+  and writes (e.g., `output/PROBLEMSTATEMENT.md`), the relevant sources, and the expected return
+  (a concise report of what it produced). Honor the file-placement rules above.
+- **Human-in-the-loop is preserved.** Subagents still run under global constraints: no infra
+  execution, no destructive actions, Microsoft/Azure-native by default, and approval checkpoints
+  surfaced back to the user by the orchestrator.
+- **Narrow exception.** Only perform a stage inline if the required agent is genuinely unavailable
+  in the current environment — and if so, state explicitly that you are falling back to inline
+  execution and why, then continue to prefer the subagent on the next opportunity.
+
 The rest of this file defines the Documentation Governance Agent, which governs documentation
 quality across the whole repository.
 

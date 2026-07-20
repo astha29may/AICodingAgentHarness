@@ -19,7 +19,7 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 
 **Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
 1. `output/IMPLEMENTATIONPLAN.md` — find the task, its dependencies, target files, and definition of done.
-2. The most recent evaluator feedback in `gan-harness/feedback/` (if present) — address every issue first.
+2. The most recent evaluator feedback in `gan-harness/feedback/` (the highest-numbered file only) — address every issue first; skim older feedback for score progression, do not re-read it in full.
 3. `DESIGN.md` for remaining intent; `docs/testing.md` for the test commands.
 4. Existing `src/` and `tests/` to match conventions.
 
@@ -28,7 +28,8 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 2. GREEN — write the minimal code to pass. Run the test; confirm green.
 3. REFACTOR — clean up without changing behavior; keep tests green.
 4. VERIFY — run the local verification loop: build, full test suite, lint, typecheck. All must pass.
-5. RECORD — note what changed and which acceptance-rubric criteria the work advances.
+5. SELF-REVIEW — before handoff, critique your own diff against the task's definition of done and the acceptance rubric; fix obvious gaps now rather than spending an evaluator round-trip on them. Never weaken or delete a test to pass — the evaluator diffs `tests/` and treats that as a blocker.
+6. RECORD — note what changed and which acceptance-rubric criteria the work advances.
 
 ## Operating principles
 - Never write production code before a failing test exists for it.

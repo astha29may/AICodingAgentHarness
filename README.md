@@ -128,7 +128,10 @@ iterative loop. The evaluator scores each iteration against the weighted accepta
 rubric in `IMPLEMENTATIONPLAN.md`, writes `gan-harness/feedback/feedback-<NNN>.md`,
 and returns `ITERATE` or `PASS`. The build addresses feedback each round until
 the pass threshold (default 7.0/10) is met, then a final `gan-harness/build-report.md`
-is written.
+is written. The loop is bounded and self-correcting: the evaluator runs a **test-integrity
+check** (tests weakened or deleted to pass are a blocker), flags **regressions** when a round
+scores below the previous one, and stops at an **iteration budget** (`MAX_ITERATIONS`, default 5)
+or a two-round plateau — surfacing to the human instead of looping indefinitely.
 
 After a solution reaches `PASS`, run the `agent-feedback` retrospective in solution-closeout mode.
 That closeout reviews the session transcript and session history for each participating harness
