@@ -1,0 +1,4 @@
+# Test-only dependencies (not required at runtime — runtime stays stdlib-only).
+# Install for a clean-machine test run: python -m pip install -r requirements-dev.txt
+pytest==8.4.2
+jsonschema==4.25.0

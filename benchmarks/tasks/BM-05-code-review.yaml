@@ -1,0 +1,73 @@
+# BM-05: Code Review
+# Stage: review | Agent: code-reviewer
+# Complexity: medium
+#
+# WHAT THIS MEASURES
+#   Does the code-reviewer identify correctness issues, OWASP Top 10 security
+#   findings, maintainability problems, and missing test coverage — and produce
+#   severity-ranked findings with a clear PASS / CHANGES REQUIRED verdict?
+
+id: BM-05
+title: "Code Review — Event Ingestion API Handler"
+stage: review
+agent: code-reviewer
+complexity: medium
+
+fixtures:
+  files:
+    - path: benchmarks/fixtures/BM-05-diff-input.py
+      source: benchmarks/fixtures/BM-05-diff-input.py
+  inline:
+    file_under_review: benchmarks/fixtures/BM-05-diff-input.py
+
+prompt: |
+  Review the file at {{file_under_review}}.
+
+  Produce a structured code review with:
+  1. Severity-ranked findings: CRITICAL / HIGH / MEDIUM / LOW / INFO
+  2. For each finding: file + line reference, description, remediation guidance
+  3. Security findings must reference the relevant OWASP Top 10 category
+  4. A final verdict: PASS or CHANGES REQUIRED
+  5. A brief summary (≤3 sentences) explaining the verdict
+
+  Focus areas:
+  - Correctness: logic errors, edge cases, exception handling
+  - Security: injection, broken auth, insecure deserialization, logging of sensitive data
+  - Maintainability: code clarity, naming, coupling, unnecessary complexity
+  - Test coverage gaps: what is missing or untestable
+
+expected_outputs: []   # code review is a written report, not a file artefact
+
+evaluation:
+  rubric:
+    - criterion: "Review contains severity-ranked findings (CRITICAL/HIGH/MEDIUM/LOW/INFO)"
+      weight: 2.0
+      check: regex
+      check_value: "(?i)(CRITICAL|HIGH|MEDIUM|LOW|INFO)"
+
+    - criterion: "Security findings reference OWASP categories"
+      weight: 2.5
+      check: regex
+      check_value: "(?i)(OWASP|A0[1-9]|A10|injection|broken auth|sensitive data|insecure)"
+
+    - criterion: "Findings include file + line references and remediation guidance"
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Verdict is explicit: PASS or CHANGES REQUIRED"
+      weight: 1.5
+      check: regex
+      check_value: "(?i)(PASS|CHANGES REQUIRED)"
+
+    - criterion: "No false negatives: the seeded security flaw in the fixture is caught"
+      weight: 2.0
+      check: llm-judge
+
+tags: [review, security, owasp, single-agent]
+notes: >
+  The fixture BM-05-diff-input.py intentionally contains:
+    - A SQL injection via f-string interpolation (OWASP A03)
+    - A hard-coded secret in a comment (OWASP A02)
+    - Logging of a request body that may contain PII (OWASP A09)
+  The rubric criterion "no false negatives" checks that all three are caught.
+  Add more seeded flaws to the fixture to increase difficulty.

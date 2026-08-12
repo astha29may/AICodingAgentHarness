@@ -8,7 +8,7 @@ Read:
 Then produce:
 - DESIGN.md
 - TechnicalGaps.md
-- .github/docs/architecture-first-cut.drawio
+- output/architecture-first-cut.drawio
 
 ## Hard constraints
 - Human-in-the-loop only. No infra execution. No destructive actions.
@@ -40,7 +40,7 @@ Then produce:
    - Validation Plan Gaps
 
 3) Create/update a first-cut draw.io architecture diagram:
-   - File path: `.github/docs/architecture-first-cut.drawio`
+   - File path: `output/architecture-first-cut.drawio`
    - Must align with the current high-level architecture in DESIGN.md
    - Keep it simple and editable (first-cut, not final polished diagram)
 

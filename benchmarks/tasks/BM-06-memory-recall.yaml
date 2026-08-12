@@ -1,0 +1,131 @@
+# BM-06: Cross-Session Memory Recall — Five Memory-Quality Dimensions
+# Stage: memory | Agent: N/A (persistent memory recall — no GHCP agent invoked)
+# Complexity: small
+#
+# WHAT THIS MEASURES (per memory-architecture.md §9)
+#   After seeding persistent memory, this task scores the memory layer across the
+#   five memory-quality dimensions:
+#     - recall        : seeded fresh facts are retrieved in a cold session.
+#     - usefulness    : recalled facts actually and usefully answer the question.
+#     - contamination : facts from a DIFFERENT solution fingerprint never leak in
+#                       (proves repo-scoped fingerprinting blocks cross-repo bleed).
+#     - staleness     : facts past the staleness TTL (policy.yaml staleness_ttl_days=30)
+#                       are not recalled as fresh — they are flagged or NOT-FOUND.
+#     - token-cost    : retrieved context stays within the 8000-token cap
+#                       (policy.yaml max_retrieved_memory_tokens).
+#
+# CONFIGURABLE KNOBS
+#   pass_threshold (default 8.0 per benchmark-config.yaml — memory must be high accuracy)
+#   The seed_facts / other_repo / recall_questions fixtures drive what is stored and tested.
+
+id: BM-06
+title: "Memory Recall — Five-Dimension Memory-Quality Evaluation"
+stage: memory
+complexity: small
+
+fixtures:
+  inline:
+    # Facts seeded under THIS repo's solution fingerprint: AICodingAgentHarness.
+    seed_facts: |
+      FACT-1: The harness repo root is AICodingAgentHarness.
+      FACT-2: The default model for this harness is copilot.
+      FACT-3: Harness deliverables always go in output/, never the repo root.
+      FACT-4: The token budget cap for retrieved context is 8000 tokens per turn.
+      FACT-5: The suite-level pass threshold is 7.2 (weighted mean quality score).
+
+    # STALE fact: recorded more than staleness_ttl_days (30) ago. Per policy it
+    # must NOT be surfaced as a fresh recall — it is flagged stale or NOT-FOUND.
+    stale_fact: |
+      FACT-6 (recorded 90 days ago — past the 30-day staleness TTL):
+      The default model for this harness is gpt-4o. [SUPERSEDED by FACT-2]
+
+    # Facts seeded under a DIFFERENT solution fingerprint: PaymentGatewayService.
+    # These belong to another repo and must never leak into AICodingAgentHarness
+    # recall. This is the cross-repo contamination case.
+    other_repo: |
+      Solution fingerprint: PaymentGatewayService (distinct from AICodingAgentHarness).
+      OTHER-FACT-1: The PaymentGatewayService default model is mistral-large-2411.
+      OTHER-FACT-2: PaymentGatewayService deliverables go in dist/.
+
+    recall_questions: |
+      Q1: Where should harness deliverables be placed?
+      Q2: What is the default model configured for this harness?
+      Q3: What is the hard token cap for retrieved context per turn?
+      Q4: What is the suite-level pass threshold for the benchmark suite?
+      Q5: Was the default model ever gpt-4o, and is that answer still current?
+      Q6: What is the PaymentGatewayService default model?
+
+prompt: |
+  PHASE 1 — SEED (run in a fresh session, then immediately close and reopen):
+  Store the following facts in your persistent memory (Tier A — durable) under the
+  AICodingAgentHarness solution fingerprint:
+  {{seed_facts}}
+
+  The following fact is already in memory but is stale (past its TTL):
+  {{stale_fact}}
+
+  The following facts belong to a DIFFERENT solution fingerprint and MUST be kept
+  scoped to that repo — never recall them for AICodingAgentHarness:
+  {{other_repo}}
+
+  Confirm each fact is stored under its correct fingerprint. Then end this phase.
+
+  PHASE 2 — RECALL (new session, no prior context):
+  Answer the following questions using only your persistent memory scoped to the
+  AICodingAgentHarness fingerprint — do not read files or use tools to look up answers:
+  {{recall_questions}}
+
+  For each answer, state: [RECALLED | INFERRED | NOT-FOUND | STALE] and the confidence (0–1).
+
+expected_outputs: []
+
+evaluation:
+  pass_threshold_override: 8.0
+  rubric:
+    - criterion: "All fresh questions answered (no NOT-FOUND for FACT-1 through FACT-4)"
+      dimension: recall
+      weight: 3.0
+      check: llm-judge
+
+    - criterion: "Answers are factually correct per the seed facts (no hallucination)"
+      dimension: usefulness
+      weight: 4.0
+      check: llm-judge
+
+    - criterion: "Confidence scores are calibrated (RECALLED facts report ≥0.7)"
+      dimension: recall
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "No cross-repo contamination: recall output contains no PaymentGatewayService fact"
+      dimension: contamination
+      weight: 3.0
+      check: custom-script
+      check_value: benchmarks/scripts/check-no-leak.py
+
+    - criterion: "Recalled facts directly and usefully answer each question (actionable, not vague)"
+      dimension: usefulness
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Stale fact (FACT-6, past the 30-day staleness_ttl_days) is not recalled as fresh — it is flagged STALE or NOT-FOUND, and Q2 returns the current copilot value"
+      dimension: staleness
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Retrieved memory context stays within the 8000-token cap (policy.yaml max_retrieved_memory_tokens)"
+      dimension: token-cost
+      weight: 1.0
+      check: llm-judge
+
+tags: [memory, recall, usefulness, contamination, staleness, token-cost, cross-session]
+notes: >
+  BM-06 is the only task that does not invoke a GHCP harness agent — it tests
+  the persistent memory layer directly across the five memory-quality dimensions
+  from memory-architecture.md §9. The runner executes Phase 1 and Phase 2 as
+  separate invocations (separate sessions) to force a cold-start recall.
+  The contamination dimension seeds a SECOND solution fingerprint
+  (PaymentGatewayService) and proves repo-scoped fingerprinting blocks leakage
+  via the deterministic check-no-leak.py checker. The staleness dimension seeds a
+  past-TTL fact that must not surface as fresh. Pass threshold is intentionally
+  high (8.0): stale or wrong memory is more dangerous than no memory.

@@ -65,4 +65,7 @@ Write to `gan-harness/feedback/feedback-<NNN>.md` (zero-padded iteration), conta
 ## Handoff
 When evaluation is complete:
 - If `ITERATE`: invoke `@coding-agent` with feedback and the updated rubric score so they can iterate.
-- If `PASS`: write `gan-harness/build-report.md` with score progression, then invoke `@agent-feedback` in solution-closeout mode so the completed session generates per-agent ledgers and curated spec improvements.
+- If `PASS`: write `gan-harness/build-report.md` with score progression, then invoke `@agent-feedback` in solution-closeout mode so the completed session generates per-agent ledgers, **candidate memory records (self-learning, autonomously — even with no user correction; or an explicit no-op if nothing new)**, and curated spec improvements.
+- On `PASS`, also **append an efficiency-trend row automatically** so the user never has to remember:
+  `python benchmarks/scripts/efficiency-tracker.py --surface vscode --iterations <iterations-to-PASS from the score-progression table> --build . --note "<one line>"`.
+  Session tokens are read automatically from the VS Code chat debug log (`llm_request` events) — no manual entry. This keeps the quality / iterations / tokens / memory-count trend in `gan-harness/efficiency-log.csv` current every build.

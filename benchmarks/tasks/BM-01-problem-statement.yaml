@@ -1,0 +1,74 @@
+# BM-01: Problem Statement Creation
+# Stage: problem-statement | Agent: problem-statement-creation
+# Complexity: medium
+#
+# WHAT THIS MEASURES
+#   Can the agent produce a strict, fact-only PROBLEMSTATEMENT.md from a raw
+#   project description without hallucinating design decisions or solutions?
+#
+# CONFIGURABLE KNOBS (override in benchmark-config.yaml > tasks[BM-01].overrides)
+#   pass_threshold, timeout_seconds, token_budget, model
+
+id: BM-01
+title: "Problem Statement Creation — Conversational Support Assistant"
+stage: problem-statement
+agent: problem-statement-creation
+complexity: medium
+
+fixtures:
+  inline:
+    project_name: "ConverseHub"
+    raw_description: |
+      We are building a browser-based conversational assistant for internal support teams.
+      Users chat with an AI agent in a simple web UI; the agent answers questions and can
+      call a small set of tools: a knowledge-base search over the team wiki, a weather
+      lookup, and a calculator. Conversations are single-user sessions with short per-session
+      history. Target: 20 support agents at launch, up to 100 within a year. Stack preference:
+      Azure. Budget: $2 000/month cloud spend at 100 users. Team: 2 full-stack engineers, 1 designer.
+
+prompt: |
+  Create a PROBLEMSTATEMENT.md for the project "{{project_name}}" in output/PROBLEMSTATEMENT.md.
+
+  Raw input:
+  {{raw_description}}
+
+  Rules:
+  - Strict facts only — no design decisions, no solution recommendations.
+  - Include: business context, stakeholders, problem scope, constraints, success criteria.
+  - Do NOT include architecture, technology choices, or implementation details.
+  - Output path: output/PROBLEMSTATEMENT.md
+
+expected_outputs:
+  - path: output/PROBLEMSTATEMENT.md
+    required: true
+    min_bytes: 500
+
+evaluation:
+  rubric:
+    - criterion: "File output/PROBLEMSTATEMENT.md exists and is non-empty"
+      weight: 1.0
+      check: file-exists
+      check_value: "output/PROBLEMSTATEMENT.md"
+
+    - criterion: "Contains all mandatory sections: business context, stakeholders, problem scope, constraints, success criteria"
+      weight: 3.0
+      check: regex
+      check_value: "(?si)(business context|stakeholder).+(scope|problem).+(constraint).+(success criteria)"
+
+    - criterion: "No design or solution language present (no architecture, no technology stack selection)"
+      weight: 2.5
+      check: llm-judge
+
+    - criterion: "Fact-grounded: all claims traceable to the raw input, no hallucinations"
+      weight: 2.5
+      check: llm-judge
+
+    - criterion: "Professional, structured, readable by a new engineer without prior context"
+      weight: 1.0
+      check: llm-judge
+
+tags: [problem-statement, single-agent, foundational, no-design]
+notes: >
+  Baseline model: claude-opus-4.8 (updated 2026-08-06).
+  The llm-judge criteria use the task model unless evaluation.judge_model is set.
+  To test with a different scenario, edit the inline.raw_description fixture.

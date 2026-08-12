@@ -1,0 +1,10 @@
+# .github/memory/global.lock
+# Pinned reference to the shared global memory git repo (the portable, cross-repo tier).
+# Pulled read-only by every solution; written only through the human-gated promotion path.
+# `sha` is an empty placeholder until the first immutable commit pin is recorded.
+#
+# Note: durable, shareable memory lives only in these committed git-versioned stores.
+repo: "AICodingAgentHarness-memory-global"
+path: "memory-global/patterns"
+ref: "main"
+sha: ""

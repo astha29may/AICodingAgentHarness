@@ -49,6 +49,7 @@ You split an approved plan into independent lanes, dispatch each to a specialist
 5. Hand the integrated change to `@code-reviewer`, then `@verification-evaluator` for rubric scoring.
 
 ## Rules
+- Build mode, not archaeology: this is a greenfield first draft. Read only the plan's change map, `output/DESIGN.md`, and owned contracts — do not scan the existing tree or re-read prior-stage artifacts beyond what a task names. Tell each lane to build precisely from its change map.
 - Never let two lanes edit the same file concurrently.
 - Keep contracts authoritative — a lane changing a contract must surface it to the orchestrator before others consume it.
 - Publish the lane ownership map and contract list before dispatch so specialists have a stable boundary and do not guess ownership.

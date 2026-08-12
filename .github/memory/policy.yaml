@@ -1,0 +1,9 @@
+# .github/memory/policy.yaml
+# Harness memory POLICY knobs. Consumed by the Python scorer/materializer
+# (.github/scripts/sync-memory.py) and the self-learning loop — NOT by any external engine.
+# The human gate is PR review plus Python secret-redaction, not an interactive approval prompt.
+confidence_threshold: 0.65        # entries below relevance × confidence are demoted
+staleness_ttl_days: 30            # days before an entry is marked stale and re-validated
+max_recalled_entries: 5           # max memory entries surfaced per turn (ranked; keep to 3-5)
+max_retrieved_memory_tokens: 8000 # hard cap on tokens of retrieved memory injected per turn
+evict_after_unused_days: 90       # archive a once-used entry not recalled within this window (LRU)

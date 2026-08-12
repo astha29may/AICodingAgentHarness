@@ -51,7 +51,7 @@ dedicated agent, and a generator-evaluator loop verifies the build.
 
 ### Pipeline
 
-![Agent harness pipeline](docs/diagrams/pipeline.png)
+![Agent harness pipeline](.github/docs/diagrams/pipeline.png)
 
 <details><summary>Diagram source (Mermaid)</summary>
 
@@ -167,7 +167,7 @@ place it where the agent reads it), fill in the `TODO: Add details`, then run th
 | Requirement | Needed for | Notes |
 | --- | --- | --- |
 | VS Code + GitHub Copilot (agent mode) | All agents | Agents are selected from the Chat **Agent** picker. |
-| Node.js 18+ | Diagram rendering | `scripts/render-diagrams.ps1` uses `npx @mermaid-js/mermaid-cli`. |
+| Node.js 18+ | Diagram rendering | `.github/scripts/render-diagrams.ps1` uses `npx @mermaid-js/mermaid-cli`. |
 | **WorkIQ plugin** | `problem-statement-creation` only | Pulls Microsoft 365 context (emails, meetings, Teams, SharePoint). Sign in once; accept the EULA on first use. |
 
 #### Install the WorkIQ plugin (if not already available)
@@ -318,7 +318,7 @@ The fan-out/fan-in stage is driven by the **`parallel-build-orchestrator`**:
 6. **Review + score** — hand off to `code-reviewer`, then `verification-evaluator`. On `ITERATE`,
    re-run the affected lane(s); on `PASS`, the evaluator writes `gan-harness/build-report.md`.
 
-![Parallel build sequence](docs/diagrams/parallel-build-sequence.png)
+![Parallel build sequence](.github/docs/diagrams/parallel-build-sequence.png)
 
 <details><summary>Diagram source (Mermaid)</summary>
 
@@ -369,38 +369,38 @@ repo/
 │  ├─ agents/                      # Harness agents (problem, design, plan, orchestrator, lane specialists, review, eval)
 │  ├─ instructions/                # Path-scoped instructions (architecture, coding-style)
 │  ├─ prompts/                     # Reusable prompts
-│  └─ skills/                      # Workflow skills (docs, planning, parallel-build, TDD, review, verify, search)
+│  ├─ skills/                      # Workflow skills (docs, planning, parallel-build, TDD, review, verify, search)
+│  ├─ memory/                      # Durable memory store (schema, policy, repo/global scopes)
+│  ├─ lib/                         # Harness library — memory/fingerprint.py (stable solution identity)
+│  ├─ scripts/                     # Harness scripts (memory sync, benchmark runner, diagram render, baseline lock)
+│  ├─ tests/                       # Harness's own test suite (unit + integration)
+│  └─ docs/                        # THIS harness's own self-docs (design, plan, architecture, testing, ...) + diagrams/
 ├─ AGENTS.md                       # Documentation Governance agent manual
-├─ docs/
-│  ├─ architecture.md
-│  ├─ deployment.md
-│  ├─ local-setup.md
-│  ├─ testing.md
-│  ├─ observability.md
-│  └─ evaluation.md
+├─ benchmarks/                     # Harness benchmark tasks + rubric scripts
+├─ docs/                           # Documentation for a project the harness builds (agent-produced)
 ├─ templates/                      # Committed starter templates for harness artifacts
-├─ output/                         # Generated harness deliverables (problem/design/gaps/plan)
-├─ gan-harness/                    # Generator-evaluator working files (feedback, contracts, report)
+├─ output/                         # Pipeline deliverables for the target project (problem/design/gaps/plan)
+├─ gan-harness/                    # Generator-evaluator working files (feedback ledgers, run logs, reports, efficiency log)
 ├─ copilotscripts/                 # Throwaway/intermediate agent scripts (git-ignored)
-├─ src/                            # Application source code
-├─ tests/                          # Automated tests
-├─ infra/                          # Infrastructure as Code
-├─ scripts/                        # Operational/helper scripts
+├─ src/                            # Landing zone for the built project's source (empty until a build runs)
+├─ tests/                          # Landing zone for the built project's tests
+├─ infra/                          # Infrastructure as Code — landing zone for the built project
+├─ scripts/                        # Landing zone for the built project's scripts
 └─ README.md
 ```
 
 ## Getting Started
 
-1. Review the system documentation under [docs/](docs/).
+1. Review the system documentation under [.github/docs/](.github/docs/).
 2. Place application code in `src/`, tests in `tests/`, infra in `infra/`, scripts in `scripts/`.
 3. Each module/agent must include a `documentation.md` with the required 14 sections
    (see [AGENTS.md](AGENTS.md)).
-4. Fill in every `TODO: Add details` placeholder in the `docs/` templates with
+4. Fill in every `TODO: Add details` placeholder in the `.github/docs/` files with
    codebase-grounded information.
 
 ## Documentation Standard
 
-- System-level docs live in `docs/`.
+- System-level docs for this harness live in `.github/docs/`; a project the harness builds uses top-level `docs/`.
 - Module/agent-level docs live as `documentation.md` inside each module/agent folder.
 - Never commit secrets; document only variable names and where secrets are stored.
 - Use `TODO: Add details` instead of guessing.

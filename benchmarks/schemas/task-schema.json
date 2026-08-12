@@ -1,0 +1,161 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/AICodingAgentHarness/benchmarks/schemas/task-schema.json",
+  "title": "HarnessBenchmarkTask",
+  "description": "Schema for a single benchmark task YAML file in benchmarks/tasks/",
+  "type": "object",
+  "required": ["id", "title", "stage", "prompt", "evaluation"],
+  "additionalProperties": false,
+  "properties": {
+
+    "id": {
+      "type": "string",
+      "pattern": "^BM-\\d{2,}$",
+      "description": "Unique task identifier matching the entry in benchmark-config.yaml"
+    },
+
+    "title": {
+      "type": "string",
+      "description": "Short human-readable title"
+    },
+
+    "stage": {
+      "type": "string",
+      "enum": [
+        "problem-statement",
+        "architecture",
+        "implementation-plan",
+        "coding",
+        "review",
+        "verification",
+        "memory",
+        "orchestration",
+        "custom"
+      ],
+      "description": "Harness stage this task exercises"
+    },
+
+    "agent": {
+      "type": "string",
+      "description": "Agent to invoke. Leave blank to use the default for the stage.",
+      "examples": [
+        "problem-statement-creation",
+        "technical-architect",
+        "implementation-planner",
+        "coding-agent",
+        "code-reviewer",
+        "verification-evaluator"
+      ]
+    },
+
+    "complexity": {
+      "type": "string",
+      "enum": ["small", "medium", "large"],
+      "default": "medium",
+      "description": "Rough task complexity. Affects timeout and token budget scaling."
+    },
+
+    "fixtures": {
+      "type": "object",
+      "description": "Input files or inline content provided to the agent before the prompt.",
+      "properties": {
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "source"],
+            "properties": {
+              "path": { "type": "string", "description": "Repo-relative path where the file is placed." },
+              "source": { "type": "string", "description": "Repo-relative path of the fixture source file." }
+            }
+          }
+        },
+        "inline": {
+          "type": "object",
+          "description": "Key-value pairs injected as named variables into the prompt template.",
+          "additionalProperties": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "prompt": {
+      "type": "string",
+      "description": "The instruction sent to the agent. Use {{variable}} for fixture inline values."
+    },
+
+    "expected_outputs": {
+      "type": "array",
+      "description": "Artefacts the agent must produce. Runner checks these exist after execution.",
+      "items": {
+        "type": "object",
+        "required": ["path"],
+        "properties": {
+          "path": { "type": "string" },
+          "required": { "type": "boolean", "default": true },
+          "min_bytes": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+
+    "evaluation": {
+      "type": "object",
+      "required": ["rubric"],
+      "additionalProperties": false,
+      "properties": {
+
+        "rubric": {
+          "type": "array",
+          "minItems": 1,
+          "description": "Weighted rubric items. Scores 0–10; weighted mean = quality_score.",
+          "items": {
+            "type": "object",
+            "required": ["criterion", "weight", "check"],
+            "properties": {
+              "criterion": { "type": "string" },
+              "weight": { "type": "number", "exclusiveMinimum": 0 },
+              "check": {
+                "type": "string",
+                "enum": ["llm-judge", "regex", "file-exists", "json-schema", "custom-script"],
+                "description": "How to evaluate this criterion."
+              },
+              "check_value": {
+                "type": "string",
+                "description": "Regex pattern, file path, schema path, or script path depending on check type."
+              }
+            }
+          }
+        },
+
+        "pass_threshold_override": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10,
+          "description": "Override the global pass_threshold for this task only."
+        },
+
+        "token_budget_override": {
+          "type": "integer",
+          "description": "Override max retrieved context tokens for this task."
+        },
+
+        "judge_model": {
+          "type": "string",
+          "description": "Model used for llm-judge criteria. Defaults to the task model.",
+          "default": "copilot:claude-sonnet-4-5"
+        }
+      }
+    },
+
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Free-form labels for filtering and grouping."
+    },
+
+    "notes": {
+      "type": "string",
+      "description": "Human-readable notes about this task, known limitations, or change history."
+    }
+  }
+}

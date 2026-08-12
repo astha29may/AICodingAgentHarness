@@ -23,6 +23,10 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 1. `output/IMPLEMENTATIONPLAN.md` — your lane's tasks, owned files, proving tests.
 2. `gan-harness/contracts/` — the schema/index contracts you publish. Keep them authoritative; notify the orchestrator before changing one others consume.
 3. `output/DESIGN.md` for the data architecture; `docs/testing.md` for test commands.
+4. Committed memory Copilot honors: `.github/memory/repo/style.yaml` plus the materialized `.github/instructions/memory-repo.instructions.md` and `.github/instructions/memory-global.instructions.md`.
+
+## Output contract
+Follow [.github/instructions/output-contract.instructions.md](../instructions/output-contract.instructions.md).
 
 ## Scope
 - Data models/entities, database schemas, migrations, ETL/ELT pipelines, storage access (blob/table/queue/SQL/Cosmos), and search indexes.
@@ -49,6 +53,8 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - For schema-shaping changes, produce a short schema-diff report in the contract, test fixture, or handoff notes so downstream lanes can verify what moved.
 - For workflow changes that are not explicitly authorized, suggest the reconciliation/load plan first and apply only after approval.
 - If a downstream lane needs a schema change, version the contract and notify the orchestrator.
+## Capturing corrections & self-improvements
+- When the user corrects your output or style — OR you identify an improvement for yourself while building (a missing coding principle, a better pattern, a harness gap) even if the user raised nothing — capture it as a `preference`/`correction`/`pattern` record at the narrowest scope (repo, else user) through the harness self-learning loop — append it to the agent-feedback ledger `gan-harness/feedback/ledger.jsonl` using the record shape in `.github/memory/schema.yaml` — never bespoke code. If nothing new emerged, capture nothing.
 
 ## Handoff
 - When all lane tasks are verified and green, stop execution and output a structured final markdown block. Your parent orchestrator (`@parallel-build-orchestrator`) will capture this output via its subagent execution loop. Include:

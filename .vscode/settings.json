@@ -1,5 +1,24 @@
 {
     "python-envs.defaultEnvManager": "ms-python.python:conda",
     "python-envs.defaultPackageManager": "ms-python.python:conda",
-    "chat.subagents.allowInvocationsFromSubagents": true
+    "chat.subagents.allowInvocationsFromSubagents": true,
+    "github.copilot.chat.agentDebugLog.fileLogging.enabled": true,
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/__pycache__": true,
+        "**/.venv": true,
+        "**/dist": true,
+        "**/target": true,
+        "gan-harness/runs/**": true,
+        "**/*.log": true
+    },
+    "files.watcherExclude": {
+        "**/node_modules": true,
+        "**/__pycache__": true,
+        "**/.venv": true,
+        "**/dist": true,
+        "**/target": true,
+        "gan-harness/runs/**": true,
+        "**/*.log": true
+    }
 }

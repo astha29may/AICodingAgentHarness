@@ -1,0 +1,74 @@
+# BM-03: Implementation Plan
+# Stage: implementation-plan | Agent: implementation-planner
+# Complexity: medium
+#
+# WHAT THIS MEASURES
+#   Does the planner convert an approved DESIGN.md into a sequenced, dependency-ordered
+#   IMPLEMENTATIONPLAN.md with a clear test strategy, file-level change map, and
+#   acceptance rubric — without expanding scope beyond the design?
+
+id: BM-03
+title: "Implementation Plan — SaaS Analytics Platform"
+stage: implementation-plan
+agent: implementation-planner
+complexity: medium
+
+fixtures:
+  files:
+    - path: output/DESIGN.md
+      source: benchmarks/fixtures/BM-03-design-input.md
+  inline:
+    plan_output_path: output/IMPLEMENTATIONPLAN.md
+
+prompt: |
+  Review output/DESIGN.md and produce a complete IMPLEMENTATIONPLAN.md at {{plan_output_path}}.
+
+  The plan must include:
+  1. Dependency-ordered task breakdown (tasks with IDs, owners, effort estimates)
+  2. Test strategy: unit, integration, and E2E scenarios per task
+  3. File-level change map: which files each task creates or modifies
+  4. Acceptance rubric: explicit pass/fail criteria for verification-evaluator
+  5. Parallel workstreams: identify which tasks can run concurrently (frontend/backend/AI/data lanes)
+
+  Constraints:
+  - Do not expand scope beyond what DESIGN.md specifies.
+  - Keep tasks small enough for a single coding-agent session.
+  - Follow the template at templates/IMPLEMENTATIONPLAN.template.md.
+
+expected_outputs:
+  - path: output/IMPLEMENTATIONPLAN.md
+    required: true
+    min_bytes: 1000
+
+evaluation:
+  rubric:
+    - criterion: "IMPLEMENTATIONPLAN.md exists and is non-empty"
+      weight: 1.0
+      check: file-exists
+      check_value: output/IMPLEMENTATIONPLAN.md
+
+    - criterion: "Contains task IDs, effort estimates, and dependency ordering"
+      weight: 2.5
+      check: llm-judge
+
+    - criterion: "Test strategy covers unit, integration, and E2E for each major task"
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Acceptance rubric is explicit and usable by verification-evaluator"
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Parallel workstreams correctly identified with non-overlapping file ownership"
+      weight: 1.5
+      check: llm-judge
+
+    - criterion: "Scope is not expanded beyond DESIGN.md (no features added)"
+      weight: 1.0
+      check: llm-judge
+
+tags: [planning, sequencing, single-agent, test-strategy]
+notes: >
+  The fixture BM-03-design-input.md is a stable, pre-authored DESIGN.md so this
+  task is independent of BM-02 output variance.
+  Adjust effort-estimate rubric expectations via evaluation.rubric[1].weight.

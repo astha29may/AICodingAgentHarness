@@ -1,0 +1,166 @@
+# ConverseHub end-to-end pipeline definition (used by run-benchmarks.ps1 -Pipeline).
+#
+# The harness is exercised the way it actually runs: a problem definition enters, each agent
+# produces an artifact, and the NEXT agent reads that real artifact (true chaining). Both a
+# harness "treatment" chain (--agent + memory/instructions/skills) and a bare "control" chain
+# run the same stages; the delta in AIU + quality is the measured harness value.
+#
+# Each stage: id, agent (Copilot --agent name for the treatment chain), prompt (chained; may read
+# prior stage outputs), expected_outputs (project-relative), and an evaluation.rubric scored by
+# benchmarks/scripts/score-task.py against a project-only snapshot (harness scaffolding excluded).
+
+project: ConverseHub
+
+problem: |
+  We are building a browser-based conversational assistant for internal support teams.
+  Users chat with an AI agent in a simple web UI; the agent answers questions and can
+  call a small set of tools: a knowledge-base search over the team wiki, a weather
+  lookup, and a calculator. Conversations are single-user sessions with short per-session
+  history. Target: 20 support agents at launch, up to 100 within a year. Stack preference:
+  Azure. Budget: $2 000/month cloud spend at 100 users. Team: 2 full-stack engineers, 1 designer.
+
+# Bare (no-harness) arm: ONE prompt, no stages, no specs. The model builds straight from the raw
+# problem with assumptions. None of the harness stage prompts/artifacts reach this arm.
+bare_build:
+  prompt: |
+    Build a complete, working, minimal but production-grade implementation of the application
+    described below. Put source under src/ and tests under tests/. Make reasonable assumptions
+    wherever details are unspecified - no problem statement, design, plan, or specs are provided.
+    Infer what you need and build it, with tests.
+
+    {{problem}}
+  evaluation:
+    rubric:
+      - criterion: "Deterministic build quality: src + tests present, syntax/compile clean, tests execute and pass"
+        weight: 7.0
+        check: code-build
+      - criterion: "Minimal yet production-grade and scalable - right-sized for a production MVE, no toy shortcuts and no gratuitous over-engineering"
+        weight: 3.0
+        check: llm-judge
+
+stages:
+  - id: PS
+    stage: problem-statement
+    agent: problem-statement-creation
+    prompt: |
+      Create a strict, fact-only problem statement at output/PROBLEMSTATEMENT.md for the project
+      ConverseHub, using ONLY this raw problem definition:
+
+      {{problem}}
+
+      Include sections: business context, stakeholders, problem scope, constraints, success criteria.
+      Facts only - no design decisions, no technology choices, no architecture.
+      Write the file to output/PROBLEMSTATEMENT.md.
+    expected_outputs:
+      - path: output/PROBLEMSTATEMENT.md
+        required: true
+    evaluation:
+      rubric:
+        - criterion: "output/PROBLEMSTATEMENT.md exists and is non-empty"
+          weight: 1.0
+          check: file-exists
+          check_value: output/PROBLEMSTATEMENT.md
+        - criterion: "Contains business context, stakeholders, scope, constraints, success criteria"
+          weight: 2.0
+          check: regex
+          check_value: "(?si)(business context|stakeholder).+(scope|problem).+(constraint).+(success)"
+        - criterion: "Fact-only: no design, architecture, or technology-stack choices introduced"
+          weight: 3.0
+          check: llm-judge
+        - criterion: "All content is grounded in the raw problem definition (no invented facts)"
+          weight: 2.0
+          check: llm-judge
+
+  - id: DESIGN
+    stage: architecture
+    agent: technical-architect
+    prompt: |
+      Read output/PROBLEMSTATEMENT.md. Produce a Microsoft/Azure-first architecture for ConverseHub at
+      output/DESIGN.md, and record unresolved gaps at output/TechnicalGaps.md. DESIGN.md must include:
+      proposed architecture (minimal first), Azure service mapping with rationale, security and
+      governance, reliability and observability, and decisions requiring approval. Ground every choice
+      in the problem statement; do not over-engineer.
+    expected_outputs:
+      - path: output/DESIGN.md
+        required: true
+    evaluation:
+      rubric:
+        - criterion: "output/DESIGN.md exists and is non-empty"
+          weight: 1.0
+          check: file-exists
+          check_value: output/DESIGN.md
+        - criterion: "Maps requirements to Azure services with rationale, and covers security + observability"
+          weight: 4.0
+          check: llm-judge
+        - criterion: "Design addresses the problem statement and stays minimal (no unrequested components)"
+          weight: 2.0
+          check: llm-judge
+
+  - id: PLAN
+    stage: implementation-plan
+    agent: implementation-planner
+    prompt: |
+      Read output/DESIGN.md. Produce a sequenced, test-ready output/IMPLEMENTATIONPLAN.md for
+      ConverseHub with: ordered milestones, a task breakdown table where every task names the test
+      that proves it, a file-level change map, and a weighted acceptance rubric. Every task must trace
+      to a decision in the design.
+    expected_outputs:
+      - path: output/IMPLEMENTATIONPLAN.md
+        required: true
+    evaluation:
+      rubric:
+        - criterion: "output/IMPLEMENTATIONPLAN.md exists and is non-empty"
+          weight: 1.0
+          check: file-exists
+          check_value: output/IMPLEMENTATIONPLAN.md
+        - criterion: "Tasks are sequenced, each names a proving test, and traces to the design"
+          weight: 4.0
+          check: llm-judge
+        - criterion: "Includes a file-level change map and a weighted acceptance rubric"
+          weight: 2.0
+          check: llm-judge
+
+  - id: CODE
+    stage: build
+    agent: parallel-build-orchestrator
+    prompt: |
+      Read output/IMPLEMENTATIONPLAN.md and build ConverseHub per the plan, test-first (TDD): for each
+      task, write its proving test under tests/ then the minimal code under src/ to make it pass, then
+      refactor for clarity. Own the whole plan (every milestone you can complete), stdlib-first, no
+      over-engineering. Report which plan tasks you implemented and the tests that prove them.
+    expected_outputs: []
+    evaluation:
+      rubric:
+        - criterion: "Deterministic build quality: src + tests present, syntax/compile clean, tests execute and pass (per the plan)"
+          weight: 7.0
+          check: code-build
+        - criterion: "Minimal yet production-grade and scalable - right-sized for a production MVE, no toy shortcuts and no gratuitous over-engineering"
+          weight: 3.0
+          check: llm-judge
+
+  - id: REVIEW
+    stage: code-review
+    agent: code-reviewer
+    prompt: |
+      Review the code under src/ and tests/ against output/IMPLEMENTATIONPLAN.md. Identify correctness,
+      security (OWASP Top 10), and maintainability issues with severity, note missing tests, and give a
+      PASS or CHANGES-REQUIRED verdict with justification. Write the review to output/REVIEW.md.
+    expected_outputs:
+      - path: output/REVIEW.md
+        required: true
+    evaluation:
+      rubric:
+        - criterion: "output/REVIEW.md exists and is non-empty"
+          weight: 1.0
+          check: file-exists
+          check_value: output/REVIEW.md
+        - criterion: "Identifies real, severity-ranked issues (correctness/security/maintainability) with a clear verdict"
+          weight: 4.0
+          check: llm-judge
+
+notes: >
+  Planning stages (PS, DESIGN, PLAN) are cheap; CODE hands the plan to parallel-build-orchestrator to
+  build ConverseHub test-first and is the expensive stage. In the copilot CLI the orchestrator has no
+  subagent-dispatch tool, so it builds inline/sequentially rather than fanning out to lanes.
+  Scoring runs against a project-only snapshot (output/, src/, tests/, docs/) so the seeded harness
+  scaffolding is never graded. llm-judge criteria read that snapshot as the corpus.

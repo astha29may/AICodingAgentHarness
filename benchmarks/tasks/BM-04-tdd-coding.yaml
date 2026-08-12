@@ -1,0 +1,100 @@
+# BM-04: TDD Coding Task
+# Stage: coding | Agent: coding-agent
+# Complexity: medium
+#
+# WHAT THIS MEASURES
+#   Does the coding-agent follow the TDD red-green-refactor cycle, write a failing test
+#   first, implement minimal passing code, and pass the verification loop
+#   (build + test + lint + typecheck) — without over-engineering?
+#
+# CONFIGURABLE KNOBS
+#   timeout_seconds (default 600 in benchmark-config.yaml for this task)
+#   complexity: change to "small" for a trivial function, "large" for a module
+
+id: BM-04
+title: "TDD Coding — Event Ingestion Parser (Python)"
+stage: coding
+agent: coding-agent
+complexity: medium
+
+fixtures:
+  inline:
+    task_description: |
+      Implement a Python function `parse_clickstream_event(raw: dict) -> ClickstreamEvent`
+      in `src/ingestion/parser.py`.
+
+      ClickstreamEvent is a dataclass with fields:
+        - event_id: str (UUID, required)
+        - tenant_id: str (required, non-empty)
+        - event_type: str (one of: page_view, add_to_cart, purchase, required)
+        - timestamp: datetime (ISO-8601 UTC, required)
+        - properties: dict (optional, default empty dict)
+
+      Validation rules:
+        - Raise ValueError with a descriptive message for any missing or invalid required field.
+        - Clamp unknown event_type to "custom" instead of raising (business rule).
+        - timestamp must be timezone-aware; localise naive datetimes to UTC.
+
+      Acceptance criteria (from IMPLEMENTATIONPLAN.md style):
+        - All unit tests pass.
+        - mypy reports zero errors on src/ingestion/parser.py.
+        - flake8 reports zero errors.
+        - No external library dependencies beyond the stdlib and dataclasses.
+
+prompt: |
+  Follow the TDD workflow:
+  1. Write a failing test in `tests/unit/test_parser.py` covering the validation rules
+     and the "clamp unknown event_type" behaviour.
+  2. Run the test to confirm it fails (red).
+  3. Implement `parse_clickstream_event` in `src/ingestion/parser.py` with minimal code
+     to make the tests pass (green).
+  4. Refactor for clarity if needed without adding new behaviour.
+  5. Run the full verification loop: pytest, mypy, flake8.
+  6. Report the result.
+
+  Task specification:
+  {{task_description}}
+
+expected_outputs:
+  - path: src/ingestion/parser.py
+    required: true
+    min_bytes: 200
+  - path: tests/unit/test_parser.py
+    required: true
+    min_bytes: 300
+
+evaluation:
+  token_budget_override: 6000   # coding tasks need less retrieved context
+  rubric:
+    - criterion: "src/ingestion/parser.py and tests/unit/test_parser.py both exist"
+      weight: 1.0
+      check: file-exists
+      check_value: src/ingestion/parser.py
+
+    - criterion: "Test file exists and tests cover all validation rules"
+      weight: 2.0
+      check: file-exists
+      check_value: tests/unit/test_parser.py
+
+    - criterion: "TDD sequence followed: test written before implementation (red-green-refactor)"
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Implementation is minimal — no over-engineering, no external dependencies"
+      weight: 1.5
+      check: llm-judge
+
+    - criterion: "Verification loop passed: pytest, mypy, flake8 all clean"
+      weight: 2.5
+      check: llm-judge
+
+    - criterion: "Unknown event_type is clamped to 'custom' (not a ValueError)"
+      weight: 1.0
+      check: regex
+      check_value: "(?s)clamp|custom"
+
+tags: [coding, tdd, python, verification, single-agent]
+notes: >
+  This task intentionally uses stdlib only so the benchmark does not require
+  package installation. For a harder variant, change complexity to "large" and
+  add an async Kafka consumer to the task_description fixture.

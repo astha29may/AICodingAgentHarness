@@ -1,13 +1,7 @@
-# Scripts
+# scripts/
 
-Operational and helper scripts live here. Reference them from the relevant `docs/` files.
+Operational and helper scripts for the **project the harness builds** live here. This is a landing
+zone — it is empty until the harness generates a project.
 
-## render-diagrams.ps1
-Renders every Mermaid `*.mmd` source under `docs/diagrams/` to a PNG next to it, so docs embed
-images (Mermaid previews are unreliable). Run after editing any diagram source:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts/render-diagrams.ps1
-```
-
-Requires Node.js (uses `npx @mermaid-js/mermaid-cli`). Commit the updated `.png` next to its `.mmd`.
+The harness's own scripts (memory sync, benchmark runner, diagram render, baseline lock) live under
+[`.github/scripts/`](../.github/scripts/), not here.
