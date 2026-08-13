@@ -193,6 +193,56 @@ _"I don't have access to emails/meetings"_, install it:
 > uses your connected credentials automatically. If your exact install command differs by Copilot
 > version, use your client's plugin marketplace and search for "WorkIQ".
 
+### Run via Chat or CLI
+
+The same agents run from **VS Code Copilot Chat** or the **GitHub Copilot CLI** — pick whichever
+fits the task. Chat is best for interactive, checkpoint-heavy stages (design, review); the CLI is
+best for long headless build runs and is typically faster end-to-end.
+
+Both surfaces read the same specs in [.github/agents/](.github/agents/), the repo-wide
+[.github/copilot-instructions.md](.github/copilot-instructions.md), and the path-scoped
+[.github/instructions/](.github/instructions/). Deliverables land in the same places (`output/`,
+`src/`, `tests/`, `gan-harness/`), so you can start in one surface and continue in the other.
+
+**Option A — VS Code Copilot Chat.** Open the Chat **Agent** picker and select an agent (see
+[How to trigger an agent](#how-to-trigger-an-agent) below), or give a single project description and
+let the orchestration delegate across the pipeline:
+
+```text
+Build <project>: <1–3 sentence description>. Sources: <folders/meetings/emails, or "none">.
+```
+
+**Option B — GitHub Copilot CLI.** From the repo root, run `copilot` interactively (approval
+checkpoints preserved) and select a stage with `--agent`:
+
+```powershell
+# interactive — recommended for a real build (human-in-the-loop stays on)
+copilot --agent technical-architect
+
+# one-shot / headless — pass the prompt with -p and a specific agent
+copilot -p "Create output/IMPLEMENTATIONPLAN.md from the approved output/DESIGN.md." `
+  --agent implementation-planner --model auto
+```
+
+Useful CLI flags (the harness benchmark runner uses these for fully headless runs):
+
+| Flag | Purpose |
+| --- | --- |
+| `--agent <name>` | Select a harness agent from [.github/agents/](.github/agents/). |
+| `-p "<prompt>"` | Run one prompt non-interactively and exit. |
+| `-C <dir>` / `--add-dir <dir>` | Set/allow the working directory (use the repo root). |
+| `--model <model>` | Override the model (`auto` picks the default). |
+| `--output-format json` | Machine-readable output (for scripting/telemetry). |
+| `--allow-all-tools` / `--no-ask-user` | **Headless automation only** — auto-approves tools and skips prompts. Omit these for a normal build so the agents' approval checkpoints stay in force. |
+
+> **Human-in-the-loop:** `--allow-all-tools --no-ask-user` bypass the confirmation gates and are meant
+> for the benchmark/automation seam, not day-to-day builds. Run the CLI interactively (no `-p`, no
+> `--allow-all-tools`) when you want the design/plan/review checkpoints to pause for you.
+
+After a `PASS`, the `verification-evaluator` closeout appends a quality-vs-cost row (tokens read from
+the session log) to `gan-harness/efficiency-log.csv`, so builds run via Chat and CLI are directly
+comparable.
+
 ### How to trigger an agent
 In VS Code Copilot Chat, open the **Agent** picker (the mode dropdown at the top of the Chat view)
 and select the agent by name, or type `@` and pick it. Then send your instruction. Each agent in
