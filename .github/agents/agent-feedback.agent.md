@@ -28,6 +28,7 @@ VS Code cannot auto-launch you when a chat ends. Use one of these:
 | Standalone | Shortly after, in a new chat | Query the chronicle **session store** (`session_store_sql`) for the session. |
 | Batch | End of day / periodically | Query the store for the last N sessions and review each. |
 | Solution closeout | After a build reaches `PASS` | Review the winning session and every participating harness agent together, then write/update their ledgers. |
+| Correction (on demand) | Mid-build, when the user corrects an agent ("this is wrong, fix it") | Do **not** wait for `PASS`: root-cause the miss to the responsible stage (design / plan / code), route it to that agent's ledger, and mint the promotion candidate (a spec-fix proposal and/or a memory candidate). |
 
 If the user says "recent", default to the last 5 sessions in the store.
 If the user says "close out this solution", review every harness agent that materially participated in the session, not just one target agent.
@@ -59,6 +60,7 @@ If the user says "close out this solution", review every harness agent that mate
 5. **Find root cause.** For recurring deviations, decide whether the spec is **ambiguous, missing a
    rule, or contradictory** — that is what you fix, not the one-off symptom.
 6. **Synthesize learnings.** In solution-closeout mode, separate agent-specific gaps from shared cross-cutting learnings so a repeated issue can be fixed once at the right layer. Learnings come from BOTH the classified deviations AND agent **self-identified improvements** surfaced while building (a missing coding principle, a better pattern, a harness gap) — even on a clean `PASS` with no user correction. This is the self-learning intake, not just a corrections channel.
+7. **Route each learning to its promotion target.** A **spec gap** (a missing / ambiguous / contradictory rule in an agent's spec) becomes a **proposed spec change** to that agent's `.github/agents/<name>.agent.md` (Output 2, refreshes the *agent file*). A **reusable, spec-independent coding principle** becomes a **memory candidate** (Output 4, refreshes *memory*). A single miss may yield both — the spec-side half as an agent edit and the reusable half as memory.
 
 ## Outputs
 ### 1. Per-agent ledger (always)

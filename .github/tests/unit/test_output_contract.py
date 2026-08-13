@@ -9,9 +9,11 @@ def test_canonical_contract_exists(repo_root: Path):
     assert (repo_root / CANONICAL).is_file(), "the one canonical output contract must exist"
 
 
-def test_each_build_agent_references_contract(build_agents, read_agent_spec):
-    for name in build_agents:
-        assert REFERENCE in read_agent_spec(name), f"{name} must reference the shared output contract"
+def test_shared_build_lane_references_contract(repo_root: Path):
+    shared = repo_root / ".github" / "instructions" / "build-lane.instructions.md"
+    assert shared.is_file(), "shared build-lane instruction must exist"
+    text = shared.read_text(encoding="utf-8")
+    assert REFERENCE in text, "the shared build-lane instruction must reference the output contract for every build agent"
 
 
 def test_contract_prose_is_not_duplicated(repo_root: Path):
