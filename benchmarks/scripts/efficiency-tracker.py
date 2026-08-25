@@ -22,7 +22,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 LOG = ROOT / "gan-harness" / "efficiency-log.csv"
-FIELDS = ["date", "surface", "quality", "tokens", "iterations", "memories", "tok_per_q", "note"]
+FIELDS = ["date", "surface", "quality", "tokens", "input_tokens", "output_tokens",
+          "iterations", "memories", "tok_per_q", "note"]
 
 
 def _find_session_log():
@@ -37,8 +38,8 @@ def _num(line: str, field: str) -> int:
     return int(match.group(1)) if match else 0
 
 
-def session_tokens(session_log=None):
-    """Billable tokens (output + fresh/uncached input) summed from the VS Code chat debug log."""
+def session_token_breakdown(session_log=None):
+    """Measured tokens from the VS Code chat debug log: fresh/uncached input, output, and total."""
     log = session_log or _find_session_log()
     if not log or not Path(log).exists():
         return None
@@ -48,7 +49,14 @@ def session_tokens(session_log=None):
             continue
         out += _num(line, "outputTokens")
         fresh += _num(line, "inputTokens") - _num(line, "cachedTokens")
-    return out + max(0, fresh)
+    fresh = max(0, fresh)
+    return {"input": fresh, "output": out, "total": out + fresh}
+
+
+def session_tokens(session_log=None):
+    """Billable tokens (output + fresh/uncached input) summed from the VS Code chat debug log."""
+    breakdown = session_token_breakdown(session_log)
+    return breakdown["total"] if breakdown else None
 
 
 def _quality(build_dir: str) -> float:
@@ -87,13 +95,28 @@ def _trend(rows: list) -> str:
                          _delta(prev, cur, "quality", False)])
 
 
-def _append(row: dict) -> None:
-    is_new = not LOG.exists()
-    with LOG.open("a", newline="", encoding="utf-8") as fh:
+def _ensure_header() -> None:
+    """Create the log with the current header, or migrate an older header in place (back-filling blanks)."""
+    if not LOG.exists():
+        with LOG.open("w", newline="", encoding="utf-8") as fh:
+            csv.DictWriter(fh, fieldnames=FIELDS).writeheader()
+        return
+    existing = list(csv.DictReader(LOG.open(encoding="utf-8")))
+    with LOG.open(encoding="utf-8") as fh:
+        header = fh.readline().strip().split(",")
+    if header == FIELDS:
+        return
+    with LOG.open("w", newline="", encoding="utf-8") as fh:
         writer = csv.DictWriter(fh, fieldnames=FIELDS)
-        if is_new:
-            writer.writeheader()
-        writer.writerow(row)
+        writer.writeheader()
+        for record in existing:
+            writer.writerow({k: record.get(k, "") for k in FIELDS})
+
+
+def _append(row: dict) -> None:
+    _ensure_header()
+    with LOG.open("a", newline="", encoding="utf-8") as fh:
+        csv.DictWriter(fh, fieldnames=FIELDS).writerow(row)
 
 
 def _parse(argv=None):
@@ -113,11 +136,14 @@ def main(argv=None):
     a = _parse(argv)
     quality = a.quality if a.quality is not None else _quality(a.build or ".")
     memories = a.memories if a.memories is not None else _memory_count()
-    tokens = a.tokens if a.tokens is not None else session_tokens(a.session_log)
+    breakdown = None if a.tokens is not None else session_token_breakdown(a.session_log)
+    tokens = a.tokens if a.tokens is not None else (breakdown["total"] if breakdown else None)
     tpq = round(tokens / quality) if (tokens and quality) else "n/a"
     _append({"date": date.today().isoformat(), "surface": a.surface, "quality": round(quality, 2),
-             "tokens": tokens if tokens is not None else "n/a", "iterations": a.iterations,
-             "memories": memories, "tok_per_q": tpq, "note": a.note})
+             "tokens": tokens if tokens is not None else "n/a",
+             "input_tokens": breakdown["input"] if breakdown else "",
+             "output_tokens": breakdown["output"] if breakdown else "",
+             "iterations": a.iterations, "memories": memories, "tok_per_q": tpq, "note": a.note})
     rows = list(csv.DictReader(LOG.open(encoding="utf-8")))
     print(" | ".join(h.ljust(10) for h in FIELDS))
     print("-" * (13 * len(FIELDS)))

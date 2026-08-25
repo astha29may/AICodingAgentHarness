@@ -18,8 +18,13 @@ argument-hint: >
 You split an approved plan into independent lanes, dispatch each to a specialist generator, and converge the results. You coordinate; you do not write feature code yourself.
 
 ## Read order
-1. `output/IMPLEMENTATIONPLAN.md` — tasks, dependencies, file-level change map, lane assignments.
+1. `output/IMPLEMENTATIONPLAN.md` — tasks, dependencies, per-task file ownership (target files), lane assignments.
 2. `output/DESIGN.md` — integration boundaries and contracts between components.
+
+> **Approval gate (blocking):** do not decompose or dispatch lanes until the plan checkpoint is
+> approved — `gan-harness/approvals.json` shows `plan.approved: true` (verify with
+> `python .github/scripts/set-approval.py --stage plan --check`). Approval may come from the
+> dashboard Approve button or the agent chat.
 
 ## Lanes and owners
 | Lane | Specialist agent | Owns |
@@ -33,13 +38,27 @@ You split an approved plan into independent lanes, dispatch each to a specialist
 1. **Independence first** — group tasks into lanes that touch disjoint files. A task that spans two lanes is split or sequenced, never co-owned.
 2. **Contracts before code** — for every cross-lane dependency, define an explicit interface contract (API shape, schema, event, type) and write it to `gan-harness/contracts/<name>.md` BEFORE lanes start. Lanes code against the contract, not each other.
 3. **Dependency gating** — a lane task starts only when its upstream contract exists. Pure-leaf lanes start immediately.
-4. **One owner per file** — record file ownership in the plan's change map. If two lanes need the same file, the orchestrator owns the merge of that file.
+4. **One owner per file** — record file ownership in the plan's task breakdown (each task's target files). If two lanes need the same file, the orchestrator owns the merge of that file.
 5. **One verification surface** — after lane fan-in, run one integrated offline/local verification pass from the merged workspace before any cloud-oriented validation is considered.
 
 ## Execution model (multi-system)
 - Prefer isolated workspaces per lane using git worktrees / branches: one branch per lane (`lane/frontend`, `lane/backend`, ...).
 - Dispatch each lane to its specialist (run as subagents, or as separate sessions/instances for true parallelism).
 - Each specialist works test-first within its lane and runs its own local verification before reporting back.
+
+## Run signal (dashboard)
+Bracket every dispatch with a run-activity marker so the dashboard shows which agents are running —
+independent of where their code lands (a cross-cutting agent like `@observability-engineer` may write
+to any path). Immediately **before** dispatching a specialist and immediately **after** it returns:
+
+```
+python .github/scripts/agent-activity.py --agent <lane-agent> --event start
+# … dispatch the specialist, await its result …
+python .github/scripts/agent-activity.py --agent <lane-agent> --event end
+```
+
+Do this for each lane specialist and for `@observability-engineer` at fan-in. The signal is the reliable,
+layout-agnostic source of "is this agent running"; never rely on guessing from file paths.
 
 ## Fan-in (merge + verify)
 1. Collect completed lanes; integrate against the shared contracts.
@@ -49,7 +68,7 @@ You split an approved plan into independent lanes, dispatch each to a specialist
 5. Hand the integrated change to `@code-reviewer`, then `@verification-evaluator` for rubric scoring.
 
 ## Rules
-- Build mode, not archaeology: this is a greenfield first draft. Read only the plan's change map, `output/DESIGN.md`, and owned contracts — do not scan the existing tree or re-read prior-stage artifacts beyond what a task names. Tell each lane to build precisely from its change map.
+- Build mode, not archaeology: this is a greenfield first draft. Read only the plan's task breakdown (each task's target files), `output/DESIGN.md`, and owned contracts — do not scan the existing tree or re-read prior-stage artifacts beyond what a task names. Tell each lane to build precisely from its assigned tasks' target files.
 - Never let two lanes edit the same file concurrently.
 - Keep contracts authoritative — a lane changing a contract must surface it to the orchestrator before others consume it.
 - Publish the lane ownership map and contract list before dispatch so specialists have a stable boundary and do not guess ownership.

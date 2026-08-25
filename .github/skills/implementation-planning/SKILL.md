@@ -13,7 +13,7 @@ Turn an approved architecture into a concrete, dependency-ordered build plan tha
 
 ## When to use
 - A `DESIGN.md` is approved and work needs to be broken into tasks.
-- You need a test strategy, file-level change map, or acceptance rubric.
+- You need a test strategy, per-task file ownership, or acceptance rubric.
 - A feature slice needs sequencing before implementation.
 
 ## When not to use
@@ -29,14 +29,14 @@ Turn an approved architecture into a concrete, dependency-ordered build plan tha
 
 ## Output: `output/IMPLEMENTATIONPLAN.md`
 Use these exact sections:
-1. **Scope** — what's covered and explicitly excluded.
+1. **Build slice** — which part of `DESIGN.md` this plan implements (whole design, or a named slice). Reference DESIGN scope; do not re-scope. Scope, product/architecture risks, and design rationale stay in `DESIGN.md`.
 2. **Assumptions & open questions** — traceable to `TechnicalGaps.md`; never invent answers.
-3. **Milestones** — ordered, each independently shippable and verifiable.
-4. **Task breakdown** — per task: `id`, title, dependencies, target files, the test that proves it, definition of done.
-5. **Test strategy** — unit/integration/e2e split, local vs cloud, coverage target.
-6. **File-level change map** — table: `path` → `create|modify` → purpose.
-7. **Acceptance rubric** — weighted criteria (correctness, security, tests, observability, docs); weights sum to 1.0.
-8. **Risks & rollbacks** — failure modes and back-out steps.
+3. **Milestones** — ordered `M0, M1, …`, each independently shippable and verifiable.
+4. **User stories** — `US-N` (as a … / I want … / so that … / acceptance): the user-visible value each milestone delivers.
+5. **Task breakdown** — per task: `id`, story (US-N), milestone, title, lane, effort estimate (S|M|L), dependencies, target files, the test that proves it, definition of done. Each file path appears under exactly one task/lane (no cross-lane overlap) — this is the file-ownership guarantee; no separate change-map table.
+6. **Test strategy** — unit/integration/e2e split, local vs cloud, coverage target.
+7. **Workstream parallelization** — lanes that touch disjoint files + cross-lane interface contracts; drives the parallel-build-orchestrator. Omit only when single-lane.
+8. **Acceptance rubric** — weighted criteria (correctness, security, tests, observability, docs); weights sum to 1.0.
 
 ## Rules
 - Smallest plan that satisfies the design. No features the design does not require.

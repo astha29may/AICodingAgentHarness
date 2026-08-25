@@ -40,7 +40,7 @@ You review code the coding-agent produced. You find problems; you do not rebuild
 ### Maintainability
 - Matches existing patterns and naming; no dead code or unused exports.
 - No over-engineering: abstractions justified by real reuse.
-- Scope limited to the task's file-level change map.
+- Scope limited to the task's target files.
 - Conforms to [`.github/instructions/coding-style.instructions.md`](../instructions/coding-style.instructions.md) — flag any violation (overengineering, speculative abstractions, wrapper classes, duplicated variant logic, unnecessary defensive code).
 - Flag copy-paste endpoints, redundant helper or deploy scripts, and duplicate implementations that should have been consolidated into the existing path.
 - Flag any removal of optional modes, flags, or fast paths that happened without explicit user approval.

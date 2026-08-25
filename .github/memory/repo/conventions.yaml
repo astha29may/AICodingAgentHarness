@@ -1,42 +1,107 @@
-# .github/memory/repo/conventions.yaml
-# Repo-scoped approved conventions (committed, team-shared, travels with every clone).
-# Each entry follows the single record shape in ../schema.yaml with scope.level: repo.
-# Empty placeholder until the self-learning loop promotes the first repo-scoped convention.
-# Promoted from gan-harness/feedback/ledger.jsonl on human approval (2026-08-12).
 conventions:
   - id: mem-2026-0511
     type: review-learning
-    scope: {level: repo, repo_fingerprint: null, path_glob: null, user_id: null}
-    descriptor: "Readiness/boundary validators are not a servable endpoint"
-    content: "When a task's definition of done requires serving traffic, deliver AND test the actual runtime request handler (a wired, invocable endpoint exercised by a request/response test), not only fail-closed boundary or composition-readiness validators. Green boundary tests can pass while no servable handler exists, hiding a completeness gap until code review."
-    conflict_key: "dod-servable-endpoint-vs-readiness-validator"
+    scope:
+      level: repo
+      repo_fingerprint: null
+      path_glob: null
+      user_id: null
+    descriptor: Readiness/boundary validators are not a servable endpoint
+    content: When a task's definition of done requires serving traffic, deliver AND
+      test the actual runtime request handler (a wired, invocable endpoint
+      exercised by a request/response test), not only fail-closed boundary or
+      composition-readiness validators. Green boundary tests can pass while no
+      servable handler exists, hiding a completeness gap until code review.
+    conflict_key: dod-servable-endpoint-vs-readiness-validator
     evidence:
       state: approved
       occurrences: 1
-      sources: ["session:converse-hub-pilot-closeout", "feedback-003.md#M1", "src/backend/app.py"]
+      sources:
+        - session:converse-hub-pilot-closeout
+        - feedback-003.md#M1
+        - src/backend/app.py
       ab_replay: pass
-      last_confirmed: "2026-08-12"
+      last_confirmed: 2026-08-12
       last_used: null
     confidence: 0.72
     version: 1
     supersedes: null
-    lifecycle: {created: "2026-08-11", ttl_days: 30, status: active}
-    privacy: {redacted: true, classification: none}
+    lifecycle:
+      created: 2026-08-11
+      ttl_days: 30
+      status: active
+    privacy:
+      redacted: true
+      classification: none
   - id: mem-2026-0512
     type: convention
-    scope: {level: repo, repo_fingerprint: null, path_glob: null, user_id: null}
-    descriptor: "Change gate dispositions and all dependent artifacts in one change"
-    content: "When an authorized gate disposition changes (e.g. Open to Closed for a pilot), update every dependent artifact in the same change: dependent tests, contract/config, and the build report, so the suite reflects the new authoritative state."
-    conflict_key: "gate-disposition-change-updates-dependents"
+    scope:
+      level: repo
+      repo_fingerprint: null
+      path_glob: null
+      user_id: null
+    descriptor: Change gate dispositions and all dependent artifacts in one change
+    content: "When an authorized gate disposition changes (e.g. Open to Closed for a
+      pilot), update every dependent artifact in the same change: dependent
+      tests, contract/config, and the build report, so the suite reflects the
+      new authoritative state."
+    conflict_key: gate-disposition-change-updates-dependents
     evidence:
       state: approved
       occurrences: 2
-      sources: ["session:converse-hub-pilot-closeout", "gan-harness/build-report.md", "tests/fixtures/acceptance/release-gates.json"]
+      sources:
+        - session:converse-hub-pilot-closeout
+        - gan-harness/build-report.md
+        - tests/fixtures/acceptance/release-gates.json
       ab_replay: pass
-      last_confirmed: "2026-08-12"
+      last_confirmed: 2026-08-12
       last_used: null
-    confidence: 0.70
+    confidence: 0.7
     version: 1
     supersedes: null
-    lifecycle: {created: "2026-08-11", ttl_days: 30, status: active}
-    privacy: {redacted: true, classification: none}
+    lifecycle:
+      created: 2026-08-11
+      ttl_days: 30
+      status: active
+    privacy:
+      redacted: true
+      classification: none
+  - id: cand-2026-0824-05
+    type: review-learning
+    scope:
+      level: repo
+      repo_fingerprint: null
+      path_glob: null
+      user_id: null
+    descriptor: Run independent code-review before the evaluator scoring loop
+    content: The CONTENT_FILTERED closed-contract drift survived all 3
+      verification-evaluator iterations (feedback-002 even listed it as a
+      resolved positive) and was only caught when code-review ran afterward.
+      Semantic and contract-conformance defects escape weighted-rubric scoring
+      but are caught by independent review. The fan-in should run @code-reviewer
+      and clear drift/contract findings before entering the
+      @verification-evaluator scoring loop, matching the orchestrator spec's
+      stated order.
+    conflict_key: code-review-before-evaluator-loop
+    evidence:
+      state: approved
+      occurrences: 1
+      sources:
+        - session:convbot-closeout
+        - gan-harness/feedback/feedback-002.md
+        - .github/agents/parallel-build-orchestrator.agent.md
+      ab_replay: pending
+      last_confirmed: 2026-08-24
+      last_used: null
+    confidence: 0.55
+    version: 1
+    supersedes: null
+    lifecycle:
+      created: 2026-08-24
+      ttl_days: 30
+      status: active
+    privacy:
+      redacted: true
+      classification: none
+    gate_label: PROPOSAL
+    gate_waiting_on: ab_replay:pass

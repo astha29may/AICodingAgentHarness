@@ -37,7 +37,7 @@ Catch defects, security issues, and drift before code merges. Review, don't rewr
 
 ### Maintainability
 - Matches existing patterns/naming; no dead code; no unjustified abstractions.
-- Scope limited to the task's file-level change map.
+- Scope limited to the task's target files.
 
 ### Operability
 - Logging/metrics/traces where the design requires; failure modes degrade safely.
