@@ -1,0 +1,57 @@
+# .github/memory/schema.yaml
+# THE single record shape — the memory-format convention (design memory-architecture.md §5.1).
+# Every write channel (review, test, benchmark, patch, correction), the Python loop, the materialization
+# step, and any deterministic scope/retrieval enforcement use this one shape. A record is differentiated
+# only by `scope.level` and `type`. No competing formats.
+#
+# This file documents each field name, its allowed values, and its meaning. The values below are
+# illustrative defaults; a fully-worked example record is shown (commented) at the end.
+
+id: mem-<yyyy>-<seq>          # unique record id, e.g. mem-2026-0342
+type: preference             # preference | convention | pattern | test-failure | review-learning | skill-ref
+scope:
+  level: repo                # session | repo | subsystem | user | org | global
+  repo_fingerprint: sha256   # solution identity (remote-url + repo marker), NOT a folder path
+  path_glob: null            # subsystem scope only, e.g. "src/analytics/**"
+  user_id: null              # user-preference scope only
+descriptor: ""               # cheap one-line summary; retrieved first
+content: ""                  # full text; expanded only on a top-k hit
+conflict_key: null           # optional promotion key; records sharing it override each other (strongest wins)
+evidence:
+  state: event               # event | candidate | probation | approved | deprecated
+  occurrences: 0             # number of independent observations
+  sources: []                # >=2 independent sources required to promote, e.g. [session:abc, run:BM-09-0031]
+  ab_replay: pending         # pending | pass | fail — required before `approved`
+  last_confirmed: null       # ISO date last re-verified/used; TTL clock uses this over `created`
+  last_used: null            # ISO date last recalled; drives usage (LRU) eviction (evict_after_unused_days)
+confidence: 0.0              # rises on repeated success, falls on contradiction/rejection
+version: 1                   # records supersede/deprecate rather than mutate silently
+supersedes: null             # id of the record this one replaces, or null
+lifecycle:
+  created: 2026-01-01        # ISO date the record was created
+  ttl_days: 30               # staleness horizon; past this it is archived or revalidated
+  status: active             # active | archived | deprecated
+privacy:
+  redacted: true             # secrets/tokens/raw payloads removed before persistence
+  classification: none       # none | internal | sensitive
+
+# ── Example record ──────────────────────────────────────────────────────────────
+# id: mem-2026-0342
+# type: convention
+# scope:
+#   level: repo
+#   repo_fingerprint: 9f2c...e11
+#   path_glob: null
+#   user_id: null
+# descriptor: "Use named exports, not default exports"
+# content: "All modules use named exports so tree-shaking and refactors stay reliable."
+# evidence:
+#   state: probation
+#   occurrences: 2
+#   sources: [session:abc, run:BM-09-0031]
+#   ab_replay: pending
+# confidence: 0.62
+# version: 3
+# supersedes: mem-2026-0221
+# lifecycle: {created: 2026-08-01, ttl_days: 30, status: active}
+# privacy: {redacted: true, classification: none}

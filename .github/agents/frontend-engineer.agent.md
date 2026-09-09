@@ -14,15 +14,11 @@ argument-hint: >
 
 You build the user-facing layer. You own only frontend files assigned to your lane and code against the shared contracts in `gan-harness/contracts/`.
 
-## Coding standards (mandatory)
-Strictly follow [`.github/instructions/coding-style.instructions.md`](../instructions/coding-style.instructions.md) for every file you write or modify. If a request conflicts with those standards, follow the standards and flag the conflict.
-
-**Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
-
 ## Read order
 1. `output/IMPLEMENTATIONPLAN.md` — your lane's tasks, owned files, proving tests.
 2. `gan-harness/contracts/` — API/type/event contracts your UI consumes. Treat them as fixed; if one is wrong, surface it to `parallel-build-orchestrator`, do not edit another lane's code.
 3. `output/DESIGN.md` for intended UX flows; `docs/testing.md` for test commands.
+4. Committed memory Copilot honors: `.github/memory/repo/style.yaml` plus the materialized `.github/instructions/memory-repo.instructions.md` and `.github/instructions/memory-global.instructions.md`.
 
 ## Scope
 - UI components, layout, client-side state, routing, forms, styling, accessibility.
@@ -47,7 +43,6 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - Add a third-party UI dependency only when it earns its place (bundle cost, maintenance); prefer platform/framework built-ins.
 - Match existing component patterns and naming.
 - If blocked by a missing/incorrect contract, report to the orchestrator and continue other lane tasks.
-
 ## Handoff
 - When all lane tasks are verified and green, stop execution and output a structured final markdown block. Your parent orchestrator (`@parallel-build-orchestrator`) will capture this output via its subagent execution loop. Include:
 1. **Status**: Completed Task IDs.

@@ -1,10 +1,14 @@
-3.1.0
-.github/PROBLEMSTATEMENT.md
-.github/TechnicalGaps.md
-.github/DESIGN.md
-.github/tools/*.ps1
-
 # Throwaway/intermediate agent scripts — folder kept, contents ignored
 copilotscripts/*
 !copilotscripts/.gitkeep
 !copilotscripts/README.md
+
+# Regenerable bulk only — never artifacts/source (output/, src/, tests/, infra/, .github/docs/, gan-harness/feedback/, .github/)
+**/node_modules
+**/__pycache__
+**/.venv
+**/dist
+**/target
+gan-harness/runs/
+**/*.log
+3.1.0

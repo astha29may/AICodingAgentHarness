@@ -1,0 +1,29 @@
+flowchart TB
+  U["You"] --> PS["problem-statement-creation"]
+  PS --> TA["technical-architect"]
+  TA --> IP["implementation-planner"]
+  IP --> ORC["parallel-build-orchestrator"]
+  subgraph BUILD["Parallel build lanes"]
+    FE["frontend"]
+    BE["backend"]
+    AIE["ai"]
+    DE["data"]
+  end
+  ORC --> BUILD
+  BUILD --> OBS["observability-engineer"]
+  OBS --> CR["code-reviewer"]
+  CR --> VE["verification-evaluator"]
+  VE -->|ITERATE| ORC
+  VE -->|PASS| DG["documentation-governance"]
+
+  MEM[("Memory store + ledger.jsonl")]
+  MEM -. "read: descriptor-first ≤8000 tok" .-> PS
+  MEM -. read .-> TA
+  MEM -. read .-> BUILD
+  CR -. "write: review-learning" .-> MEM
+  VE -. "write: test-failure / benchmark evidence" .-> MEM
+  BUILD -. "write: developer corrections" .-> MEM
+  MEM --> PROM{"consolidate + promote<br/>evidence-gated (≥2 fingerprints)"}
+  PROM --> HG{"human gate"}
+  HG -->|approve| SPECS[".github/agents/*.md + style.yaml"]
+  SPECS -. improves .-> BUILD

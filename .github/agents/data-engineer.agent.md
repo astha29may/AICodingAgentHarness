@@ -14,15 +14,11 @@ argument-hint: >
 
 You build the data foundation: models, schemas, pipelines, storage access, and migrations. You own only data-lane files and publish the schema/index contracts the backend and AI lanes depend on.
 
-## Coding standards (mandatory)
-Strictly follow [`.github/instructions/coding-style.instructions.md`](../instructions/coding-style.instructions.md) for every file you write or modify. If a request conflicts with those standards, follow the standards and flag the conflict.
-
-**Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
-
 ## Read order
 1. `output/IMPLEMENTATIONPLAN.md` — your lane's tasks, owned files, proving tests.
 2. `gan-harness/contracts/` — the schema/index contracts you publish. Keep them authoritative; notify the orchestrator before changing one others consume.
 3. `output/DESIGN.md` for the data architecture; `docs/testing.md` for test commands.
+4. Committed memory Copilot honors: `.github/memory/repo/style.yaml` plus the materialized `.github/instructions/memory-repo.instructions.md` and `.github/instructions/memory-global.instructions.md`.
 
 ## Scope
 - Data models/entities, database schemas, migrations, ETL/ELT pipelines, storage access (blob/table/queue/SQL/Cosmos), and search indexes.

@@ -1,0 +1,104 @@
+# BM-07: Code Redundancy / DRY Violations
+# Stage: coding | Agent: coding-agent
+# Complexity: medium
+#
+# WHAT THIS MEASURES
+#   Does the coding-agent produce DRY (Don't Repeat Yourself) code, or does it
+#   duplicate logic across functions/modules? Measures:
+#     - Duplicate code ratio (identical/near-identical blocks)
+#     - Unnecessary reimplementation of stdlib or already-present helpers
+#     - Lines of code (LOC) vs a reference LOC ceiling for the same task
+#     - Token spend relative to LOC produced (tokens-per-line efficiency)
+#
+# HOW REDUNDANCY IS DETECTED
+#   The benchmark runner executes `pylint --disable=all --enable=R0801` (duplicate-code)
+#   and a custom script that counts repeated AST subtrees.
+#   The LLM judge also checks for logical redundancy not caught by static analysis.
+#
+# CONFIGURABLE KNOBS
+#   fixtures.inline.loc_ceiling     — max acceptable LOC (lower = stricter)
+#   fixtures.inline.duplication_max — max acceptable duplicate-code ratio (0–1)
+#   evaluation.token_budget_override
+
+id: BM-07
+title: "Code Redundancy / DRY — Multi-Tenant Config Loader"
+stage: coding
+agent: coding-agent
+complexity: medium
+
+fixtures:
+  inline:
+    loc_ceiling: "80"         # implementation must fit in ≤80 non-blank, non-comment lines
+    duplication_max: "0.05"   # ≤5% duplicated code blocks (pylint R0801 threshold)
+    task_description: |
+      Implement a Python module `src/config/loader.py` with:
+
+      1. `load_tenant_config(tenant_id: str) -> dict`
+         - Read from `config/{tenant_id}.json` if it exists.
+         - Fall back to `config/default.json` otherwise.
+         - Merge tenant config over default (shallow merge, tenant wins).
+         - Cache the result in a module-level dict keyed by tenant_id.
+
+      2. `invalidate_cache(tenant_id: str | None = None) -> None`
+         - If tenant_id given, remove that entry from cache.
+         - If None, clear the entire cache.
+
+      3. `get_all_tenant_ids() -> list[str]`
+         - Return tenant IDs of all currently cached configs.
+
+      Rules:
+      - No external dependencies beyond stdlib (json, pathlib, functools).
+      - File I/O must go through a single private `_read_json(path: Path) -> dict`
+        helper — do NOT duplicate file-reading logic.
+      - The merge logic must live in a single private `_merge(base, override) -> dict`
+        helper — do NOT inline it at each call site.
+      - Total implementation: ≤{{loc_ceiling}} non-blank, non-comment lines.
+
+prompt: |
+  Implement the module described below. Follow TDD: write tests first in
+  `tests/unit/test_loader.py`, then implement `src/config/loader.py`.
+  Run pytest, mypy, and flake8 before reporting done.
+
+  {{task_description}}
+
+expected_outputs:
+  - path: src/config/loader.py
+    required: true
+    min_bytes: 200
+  - path: tests/unit/test_loader.py
+    required: true
+    min_bytes: 300
+
+evaluation:
+  token_budget_override: 5000
+  rubric:
+    - criterion: "Both output files exist"
+      weight: 1.0
+      check: file-exists
+      check_value: src/config/loader.py
+
+    - criterion: "LOC ≤ loc_ceiling (80): no bloat or unnecessary verbosity"
+      weight: 2.5
+      check: custom-script
+      check_value: benchmarks/scripts/check-loc.py
+
+    - criterion: "Duplicate-code ratio ≤ duplication_max (5%): no repeated blocks"
+      weight: 3.0
+      check: custom-script
+      check_value: benchmarks/scripts/check-duplication.py
+
+    - criterion: "File I/O is not duplicated: single _read_json helper used everywhere"
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Merge logic is not inlined: single _merge helper used everywhere"
+      weight: 1.5
+      check: llm-judge
+
+tags: [coding, dry, redundancy, loc, token-efficiency]
+notes: >
+  Increase duplication_max to 0.10 for a more lenient check.
+  Lower loc_ceiling to 60 to stress-test brevity.
+  The custom-script checks run benchmarks/scripts/check-loc.py and
+  check-duplication.py — these are created alongside this task.
+  The harness memory hook stores any DRY violations as Tier-B anti-patterns.

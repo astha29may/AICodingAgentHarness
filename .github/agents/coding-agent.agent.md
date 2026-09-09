@@ -14,14 +14,14 @@ argument-hint: >
 
 You implement tasks from `IMPLEMENTATIONPLAN.md` using a strict test-first loop. You are the generator in the generator-evaluator harness: produce working, verified code that the evaluator can score.
 
-## Coding standards (mandatory)
-Strictly follow [`.github/instructions/coding-style.instructions.md`](../instructions/coding-style.instructions.md) for every file you write or modify. If a request conflicts with those standards, follow the standards and flag the conflict.
+You are the single-stream **fix / modify / debug** agent for existing code — `parallel-build-orchestrator` owns the greenfield first-draft build. Because you change existing code, the read-before-edit and diagnose-root-cause disciplines apply; read the file(s) you will change, not the whole tree.
 
-**Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
+## Read order
 1. `output/IMPLEMENTATIONPLAN.md` — find the task, its dependencies, target files, and definition of done.
 2. The most recent evaluator feedback in `gan-harness/feedback/` (the highest-numbered file only) — address every issue first; skim older feedback for score progression, do not re-read it in full.
-3. `DESIGN.md` for remaining intent; `docs/testing.md` for the test commands.
-4. Existing `src/` and `tests/` to match conventions.
+3. `output/DESIGN.md` for remaining intent; `docs/testing.md` for the test commands.
+4. Committed memory Copilot honors: `.github/memory/repo/style.yaml` plus the materialized `.github/instructions/memory-repo.instructions.md` and `.github/instructions/memory-global.instructions.md`.
+5. Existing `src/` and `tests/` to match conventions.
 
 ## TDD loop (per task)
 1. RED — write the failing test named in the task. Run it; confirm it fails for the right reason.

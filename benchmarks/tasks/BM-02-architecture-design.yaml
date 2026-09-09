@@ -1,0 +1,82 @@
+# BM-02: Architecture Design
+# Stage: architecture | Agent: technical-architect
+# Complexity: large
+#
+# WHAT THIS MEASURES
+#   Does the architect produce a complete DESIGN.md with Azure service mapping,
+#   security/RBAC, observability, and tradeoff rationale — without over-engineering?
+#
+# CONFIGURABLE KNOBS
+#   pass_threshold (default 7.5 per benchmark-config.yaml override), timeout_seconds, model
+
+id: BM-02
+title: "Architecture Design — SaaS Analytics Platform"
+stage: architecture
+agent: technical-architect
+complexity: large
+
+fixtures:
+  files:
+    - path: output/PROBLEMSTATEMENT.md
+      source: benchmarks/fixtures/BM-02-problem-statement-input.md
+  inline:
+    design_output_path: output/DESIGN.md
+
+prompt: |
+  Review output/PROBLEMSTATEMENT.md and produce a complete DESIGN.md at {{design_output_path}}.
+
+  Required sections (from architecture.instructions.md):
+  1. Microsoft/Azure service mapping with rationale and tradeoffs
+  2. Security & governance (RBAC, managed identity, data boundaries, OWASP alignment)
+  3. Observability (Application Insights, Azure Monitor, structured logging, correlation IDs)
+  4. Failure modes and mitigations
+  5. Assumptions, risks, and decisions requiring approval
+
+  Constraints:
+  - Start with minimal viable production-ready architecture.
+  - Add orchestration/eventing only if explicitly required by the problem statement.
+  - Use Microsoft-first defaults: Azure AI Foundry, Azure Functions or Container Apps,
+    Azure AI Search, Managed Identity + Key Vault, API Management for multi-client.
+  - Include a Mermaid diagram source (store at docs/diagrams/BM-02-architecture.mmd).
+
+expected_outputs:
+  - path: output/DESIGN.md
+    required: true
+    min_bytes: 1500
+  - path: docs/diagrams/BM-02-architecture.mmd
+    required: false
+
+evaluation:
+  pass_threshold_override: 7.5
+  rubric:
+    - criterion: "DESIGN.md exists and all five required sections are present"
+      weight: 2.0
+      check: regex
+      check_value: "(?si)(azure service|service mapping).+(security|rbac|managed identity).+(observability|application insights).+(failure mode).+(assumption|risk|decision)"
+
+    - criterion: "Azure services are correctly matched to workload requirements with explicit rationale"
+      weight: 2.5
+      check: llm-judge
+
+    - criterion: "Security design: managed identity, Key Vault, RBAC scopes, no hard-coded secrets"
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Observability design: structured logging, correlation IDs, dashboards, alerts specified"
+      weight: 1.5
+      check: llm-judge
+
+    - criterion: "No over-engineering: services added only when problem statement requires them"
+      weight: 1.0
+      check: llm-judge
+
+    - criterion: "Mermaid diagram source present (docs/diagrams/BM-02-architecture.mmd)"
+      weight: 1.0
+      check: file-exists
+      check_value: docs/diagrams/BM-02-architecture.mmd
+
+tags: [architecture, design, azure, single-agent, security, observability]
+notes: >
+  The fixture file benchmarks/fixtures/BM-02-problem-statement-input.md is a
+  pre-authored stable problem statement so this task does not depend on BM-01's output.
+  Update the fixture if the test scenario changes, then re-lock the baseline.

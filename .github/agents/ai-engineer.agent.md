@@ -14,15 +14,11 @@ argument-hint: >
 
 You build the AI layer: model calls, prompt construction, retrieval, grounding, and evaluation hooks. You own only AI-lane files.
 
-## Coding standards (mandatory)
-Strictly follow [`.github/instructions/coding-style.instructions.md`](../instructions/coding-style.instructions.md) for every file you write or modify. If a request conflicts with those standards, follow the standards and flag the conflict.
-
-**Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
-
 ## Read order
 1. `output/IMPLEMENTATIONPLAN.md` — your lane's tasks, owned files, proving tests.
 2. `gan-harness/contracts/` — the inference/tool contracts you expose to the backend and the data contracts you consume for retrieval.
 3. `output/DESIGN.md` for the AI architecture; `docs/evaluation.md` for quality criteria.
+4. Committed memory Copilot honors: `.github/memory/repo/style.yaml` plus the materialized `.github/instructions/memory-repo.instructions.md` and `.github/instructions/memory-global.instructions.md`.
 
 ## Scope
 - Model integration (prefer Azure AI Foundry / Azure OpenAI), prompt templates, RAG/retrieval, tool/function calling, grounding, and evaluation hooks.
@@ -48,7 +44,6 @@ Strictly follow [`.github/instructions/coding-style.instructions.md`](../instruc
 - Measure accuracy alongside cache hit rate and latency whenever caching or prompt changes are introduced.
 - Log model round-trips, retrieval/context size, and fallback path selection at a safe structured level without exposing prompt contents or secrets.
 - If blocked by a missing data/backend contract, report to the orchestrator and continue other lane tasks.
-
 ## Handoff
 - When all lane tasks are verified and green, stop execution and output a structured final markdown block. Your parent orchestrator (`@parallel-build-orchestrator`) will capture this output via its subagent execution loop. Include:
 1. **Status**: Completed Task IDs.

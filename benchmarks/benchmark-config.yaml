@@ -1,0 +1,165 @@
+# AICodingAgentHarness — Benchmark Suite Configuration
+#
+# HOW TO ADD A TASK
+#   1. Create a new file in benchmarks/tasks/<id>.yaml following benchmarks/schemas/task-schema.json
+#   2. Add an entry to the `tasks` list below (at minimum: id, enabled, weight).
+#   3. Run `.\scripts\run-benchmarks.ps1 -TaskId <id>` to validate it.
+#   4. If it passes, run `.\scripts\lock-baseline.ps1` to update the baseline.
+#
+# HOW TO TUNE A TASK (without touching task files)
+#   Override any numeric threshold here under tasks[].overrides.
+#   Overrides take precedence over values in the task YAML.
+#
+# HOW TO DISABLE A TASK
+#   Set enabled: false — the runner skips it but keeps it in history.
+
+# ── Global defaults (apply to every task unless overridden) ───────────────────
+defaults:
+  model: "claude-opus-4.8"
+  retries: 1                    # re-run on transient failure before marking FAIL
+  timeout_seconds: 300
+  token_budget: 8000            # max retrieved context tokens per turn
+  pass_threshold: 7.0           # score out of 10 required to PASS
+  metrics:
+    # ── Quality ──────────────────────────────────────────────────────────────
+    - quality_score             # rubric-based 0–10 weighted mean
+    - first_pass_success        # boolean: passed without rework
+
+    # ── Token efficiency ─────────────────────────────────────────────────────
+    - input_tokens              # tokens sent to the model
+    - output_tokens             # tokens received from the model
+    - retrieved_context_tokens  # context tokens injected into the turn
+    - tokens_per_loc            # output_tokens / lines_of_code (lower = more efficient)
+
+    # ── Code size ─────────────────────────────────────────────────────────────
+    - lines_of_code             # non-blank, non-comment lines in produced files
+    - loc_vs_ceiling_ratio      # lines_of_code / task loc_ceiling (≤1.0 = pass)
+
+    # ── Code quality (coding tasks only) ──────────────────────────────────────
+    - duplicate_code_ratio      # fraction of lines flagged as duplicated (pylint R0801)
+    - max_cyclomatic_complexity # highest CC score across all functions (radon)
+    - functions_over_cc_limit   # count of functions exceeding cc threshold
+    - max_function_lines        # longest function body in lines
+    - functions_over_len_limit  # count of functions exceeding line-length threshold
+    - exception_handling_score  # 0–10: bare-except / swallowed / PII-logged deductions
+
+    # ── Timing ────────────────────────────────────────────────────────────────
+    - wall_seconds              # end-to-end wall time
+    - tool_call_count           # number of tool calls made
+
+  # Thresholds used by the runner when metrics are available
+  quality_thresholds:
+    duplicate_code_ratio_max: 0.05      # >5% duplicate code = quality degradation
+    max_cyclomatic_complexity_limit: 10 # CC > 10 per function = complexity warning
+    max_function_lines_limit: 30        # >30 lines per function = length warning
+    tokens_per_loc_warn: 50             # >50 output tokens per line = verbose warning
+
+# ── Task catalogue ─────────────────────────────────────────────────────────────
+tasks:
+
+  - id: BM-01
+    enabled: true
+    weight: 1.5        # contributes 1.5× to aggregate score (higher = more important)
+    file: tasks/BM-01-problem-statement.yaml
+    description: "Problem statement creation from a raw project description"
+    tags: [problem-statement, single-agent, foundational]
+
+  - id: BM-02
+    enabled: true
+    weight: 2.0
+    file: tasks/BM-02-architecture-design.yaml
+    description: "Architecture design from an approved PROBLEMSTATEMENT.md"
+    tags: [architecture, design, azure, single-agent]
+    overrides:
+      timeout_seconds: 480       # architecture tasks are deeper → allow more time
+      pass_threshold: 7.5
+
+  - id: BM-03
+    enabled: true
+    weight: 1.5
+    file: tasks/BM-03-implementation-plan.yaml
+    description: "Implementation plan generation from an approved DESIGN.md"
+    tags: [planning, sequencing, single-agent]
+
+  - id: BM-04
+    enabled: true
+    weight: 2.0
+    file: tasks/BM-04-tdd-coding.yaml
+    description: "Test-driven feature implementation — coding-agent TDD cycle"
+    tags: [coding, tdd, verification]
+    overrides:
+      timeout_seconds: 600
+
+  - id: BM-05
+    enabled: true
+    weight: 1.5
+    file: tasks/BM-05-code-review.yaml
+    description: "Code review for correctness, security (OWASP), maintainability"
+    tags: [review, security, single-agent]
+
+  - id: BM-06
+    enabled: true
+    weight: 1.0
+    file: tasks/BM-06-memory-recall.yaml
+    description: "Cross-session memory recall accuracy"
+    tags: [memory, recall, retrieval]
+    overrides:
+      pass_threshold: 8.0        # memory correctness must be high
+
+  - id: BM-07
+    enabled: true
+    weight: 2.0
+    file: tasks/BM-07-dry-redundancy.yaml
+    description: "DRY / redundancy — no duplicated logic, LOC ≤ ceiling, tokens-per-LOC efficient"
+    tags: [coding, dry, redundancy, loc, token-efficiency]
+    overrides:
+      timeout_seconds: 420
+
+  - id: BM-08
+    enabled: true
+    weight: 2.0
+    file: tasks/BM-08-exception-handling.yaml
+    description: "Exception handling quality — no bare except, no swallowed errors, PII-safe logging"
+    tags: [coding, exception-handling, security]
+    overrides:
+      pass_threshold: 7.5    # exception safety is higher bar
+
+  - id: BM-09
+    enabled: true
+    weight: 2.0
+    file: tasks/BM-09-code-quality.yaml
+    description: "Code quality — cyclomatic complexity ≤10, function length ≤30 lines, naming clarity"
+    tags: [coding, complexity, naming, cohesion, quality-metrics]
+    overrides:
+      timeout_seconds: 420
+
+  # ── Placeholder tasks (add your own below this line) ──────────────────────
+  # - id: BM-10
+  #   enabled: false
+  #   weight: 1.0
+  #   file: tasks/BM-10-custom.yaml
+  #   description: "Describe your custom benchmark here"
+  #   tags: [custom]
+
+# ── Aggregation rules ─────────────────────────────────────────────────────────
+aggregation:
+  # Weighted mean of quality_score across enabled tasks.
+  method: weighted_mean
+
+  # Suite-level pass: weighted score ≥ this value.
+  suite_pass_threshold: 7.2
+
+  # Token efficiency target: retrieved_context_tokens ≤ this fraction of token_budget.
+  token_efficiency_target: 0.75
+
+  # Regression guard: block instruction updates if suite score drops by more than this.
+  max_regression_delta: 0.3
+
+# ── Baseline lock settings ─────────────────────────────────────────────────────
+baseline:
+  file: baseline/metrics.json
+  # Require this many consecutive passing runs before a new baseline is promoted.
+  promotion_min_runs: 2
+  # Warn (but do not block) if a task score improves by more than this delta
+  # (large unexpected improvements may indicate a flawed eval).
+  improvement_warn_delta: 1.5

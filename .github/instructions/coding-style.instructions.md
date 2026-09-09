@@ -16,6 +16,18 @@ Build and modify code in a design-first way. Always align implementation with de
 (`DESIGN.md`, `PROBLEMSTATEMENT.md`, `IMPLEMENTATIONPLAN.md`), not ad-hoc assumptions. If code and
 design diverge, code follows design.
 
+## Read scope — build precisely, not broadly (MANDATORY)
+Match exploration to the work; reading files costs tokens on every turn, so read precisely, not broadly.
+- **Greenfield build (first draft from the plan).** Read ONLY what the plan names: your task's
+  change-map entries, `DESIGN.md`, and any interface contract you own. Do NOT scan or re-read the
+  existing tree and do NOT search broadly — there is nothing to preserve yet. Build straight from the plan.
+- **Modification / bug fix (changing existing code).** Only here do the read-before-edit,
+  diagnose-root-cause, and search-before-create disciplines below apply — the reading is justified
+  because existing behavior must be preserved. Read the file(s) you will change, not the whole tree.
+
+The parallel-build lanes run in build mode; `coding-agent` runs in modify/fix mode. Do not import
+build-mode breadth into a fix, or fix-mode exploration into a first draft.
+
 ## Coding Philosophy
 
 ### Core Belief

@@ -1,0 +1,122 @@
+# BM-09: Code Quality — Complexity, Naming, Cohesion
+# Stage: coding | Agent: coding-agent
+# Complexity: medium
+#
+# WHAT THIS MEASURES
+#   Holistic code quality of generated output, covering four dimensions:
+#
+#   1. Cyclomatic complexity  — no function exceeds complexity 10 (radon cc)
+#   2. Function length        — no function exceeds 30 lines
+#   3. Naming clarity         — variables/functions named for intent, not type
+#   4. Single responsibility  — each function/class does one thing
+#
+#   Also measures token efficiency: how many tokens were consumed to produce
+#   how many non-blank lines of useful code (tokens-per-LOC ratio).
+#
+# KEY METRICS COLLECTED
+#   quality_score, input_tokens, output_tokens, lines_of_code,
+#   tokens_per_loc, max_cyclomatic_complexity, max_function_lines,
+#   functions_over_complexity_limit, functions_over_length_limit
+
+id: BM-09
+title: "Code Quality / Complexity — Event Aggregator"
+stage: coding
+agent: coding-agent
+complexity: medium
+
+fixtures:
+  inline:
+    max_complexity: "10"    # radon cyclomatic complexity per function
+    max_func_lines: "30"    # max non-blank lines per function
+    task_description: |
+      Implement `src/analytics/aggregator.py` with:
+
+        aggregate_events(
+            events: list[dict],
+            group_by: str,
+            metrics: list[str]
+        ) -> dict[str, dict[str, float]]
+
+      Behaviour:
+      - `group_by`: a key present in each event dict (e.g. "event_type").
+      - `metrics`: list of numeric keys to aggregate (e.g. ["duration_ms", "value"]).
+      - Return: {group_value: {metric: mean_value, ...}, ...}
+      - Skip events missing `group_by` key (do not raise).
+      - Skip metric keys missing from an event (treat as 0 for that event).
+      - Return empty dict if events is empty.
+
+      Also implement:
+
+        top_n_groups(
+            aggregated: dict[str, dict[str, float]],
+            metric: str,
+            n: int = 5
+        ) -> list[tuple[str, float]]
+
+      - Returns top-n groups sorted descending by metric value.
+      - Raises ValueError if metric not present in any group.
+
+      Constraints:
+      - No function body longer than {{max_func_lines}} lines.
+      - No function with cyclomatic complexity > {{max_complexity}}.
+      - Each function does ONE thing: no aggregate_and_sort hybrid.
+      - No external dependencies.
+
+prompt: |
+  Implement the aggregator module below. TDD: write failing tests in
+  `tests/unit/test_aggregator.py` first, then implement.
+  Run pytest, mypy, flake8, and `radon cc -s src/analytics/aggregator.py`
+  before reporting done. Include the radon output in your completion report.
+
+  {{task_description}}
+
+expected_outputs:
+  - path: src/analytics/aggregator.py
+    required: true
+    min_bytes: 200
+  - path: tests/unit/test_aggregator.py
+    required: true
+    min_bytes: 300
+
+evaluation:
+  rubric:
+    - criterion: "Both output files exist"
+      weight: 1.0
+      check: file-exists
+      check_value: src/analytics/aggregator.py
+
+    - criterion: "Max cyclomatic complexity ≤ 10 (radon cc check)"
+      weight: 3.0
+      check: custom-script
+      check_value: benchmarks/scripts/check-complexity.py
+
+    - criterion: "No function longer than 30 lines"
+      weight: 2.0
+      check: custom-script
+      check_value: benchmarks/scripts/check-func-length.py
+
+    - criterion: "Functions named for intent (not type): no names like process_data, handle_stuff, do_thing"
+      weight: 1.5
+      check: llm-judge
+
+    - criterion: "Single responsibility: aggregate_events does not also sort results"
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Token-per-LOC ratio is reasonable: not inflated by verbose boilerplate"
+      weight: 1.5
+      check: llm-judge
+
+    - criterion: "Tests cover: empty list, missing group_by key, missing metric key, top_n ValueError"
+      weight: 2.0
+      check: llm-judge
+
+tags: [coding, complexity, naming, cohesion, token-efficiency, quality-metrics]
+notes: >
+  Tune max_complexity and max_func_lines via fixtures.inline without editing the rubric.
+  The check-complexity.py and check-func-length.py scripts use `radon` and `ast` respectively.
+  Results feed directly into harness anti-pattern memory:
+    - Functions over complexity limit → Tier-B pattern "over-complex function"
+    - Functions over length limit    → Tier-B pattern "function too long"
+  After 3 occurrences of the same pattern, the harness proposes a patch to the
+  coding-agent instruction: "Keep functions under 30 lines; split at decision boundaries."

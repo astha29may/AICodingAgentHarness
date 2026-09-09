@@ -1,0 +1,113 @@
+# BM-08: Exception Handling Quality
+# Stage: coding | Agent: coding-agent
+# Complexity: medium
+#
+# WHAT THIS MEASURES
+#   Does generated code handle exceptions correctly, specifically:
+#     - No bare `except:` or overly broad `except Exception:`
+#     - No swallowed exceptions (caught but not logged or re-raised)
+#     - Resources properly released (context managers / finally blocks)
+#     - Error messages are actionable (include what failed and why)
+#     - Retry-worthy errors distinguished from fatal errors
+#
+# WHY THIS MATTERS
+#   The most common code-quality issue in LLM-generated code is either
+#   no exception handling (crashes silently) or catch-all handling that
+#   hides bugs. Both failure modes end up in harness long-term memory as
+#   anti-patterns and are used to patch coding-agent instructions.
+
+id: BM-08
+title: "Exception Handling Quality — HTTP Data Fetcher"
+stage: coding
+agent: coding-agent
+complexity: medium
+
+fixtures:
+  inline:
+    task_description: |
+      Implement `src/fetcher/http_fetcher.py` with a single public function:
+
+        fetch_events(url: str, tenant_id: str, timeout: int = 10) -> list[dict]
+
+      Behaviour:
+      - Make a GET request to `url` with header `X-Tenant-Id: {tenant_id}`.
+      - On HTTP 200: parse JSON response body as a list; return it.
+      - On HTTP 429 (rate limit): raise `RateLimitError(retry_after: int)` — read
+        `Retry-After` header value; default 60 if header absent.
+      - On HTTP 4xx (except 429): raise `ClientError(status_code, url)`.
+      - On HTTP 5xx: raise `ServerError(status_code, url)`.
+      - On network timeout: raise `FetchTimeoutError(url, timeout)`.
+      - On JSON decode failure: raise `MalformedResponseError(url, raw_body_preview)`.
+      - All custom exceptions must subclass `FetchError` (also define this base class).
+      - Use `urllib.request` only (no `requests` library).
+      - Use a context manager for the HTTP connection.
+      - Log every error with `logging.getLogger(__name__)` at appropriate levels
+        (WARNING for 4xx/timeout, ERROR for 5xx/malformed). Do NOT log the full
+        response body (may contain PII).
+
+      Do NOT use:
+      - Bare `except:` or `except Exception:` at the top level.
+      - Silent swallowing: every caught exception must be logged or re-raised.
+
+prompt: |
+  Implement the HTTP fetcher described below. Follow TDD: write failing tests
+  first in `tests/unit/test_http_fetcher.py` (mock urllib), then implement.
+  Run pytest, mypy, flake8 before reporting done.
+
+  {{task_description}}
+
+expected_outputs:
+  - path: src/fetcher/http_fetcher.py
+    required: true
+    min_bytes: 300
+  - path: tests/unit/test_http_fetcher.py
+    required: true
+    min_bytes: 400
+
+evaluation:
+  rubric:
+    - criterion: "Both output files exist"
+      weight: 1.0
+      check: file-exists
+      check_value: src/fetcher/http_fetcher.py
+
+    - criterion: "No bare except: or overly broad except Exception: present"
+      weight: 3.0
+      check: regex
+      # Flags bare except and catch-all — presence of match = FAIL for this criterion
+      check_value: "(?m)^\\s*except\\s*:"
+
+    - criterion: "All custom exception types defined and subclass FetchError"
+      weight: 2.0
+      check: regex
+      check_value: "(?s)class RateLimitError.+class ClientError.+class ServerError.+class FetchTimeoutError.+class MalformedResponseError"
+
+    - criterion: "Context manager used for HTTP connection (with urllib)"
+      weight: 1.5
+      check: regex
+      check_value: "(?m)with urllib\\.request\\.urlopen|with.*urlopen"
+
+    - criterion: "No swallowed exceptions: every except block logs or re-raises"
+      weight: 2.5
+      check: llm-judge
+
+    - criterion: "Error messages include context (URL, status code, or preview) — not generic strings"
+      weight: 2.0
+      check: llm-judge
+
+    - criterion: "Response body not logged (PII safety)"
+      weight: 1.5
+      check: llm-judge
+
+    - criterion: "Tests cover all error paths (429, 4xx, 5xx, timeout, malformed JSON)"
+      weight: 2.0
+      check: llm-judge
+
+tags: [coding, exception-handling, error-quality, security, tdd]
+notes: >
+  The regex for bare except is intentionally a FAIL signal: if the pattern matches,
+  the criterion scores 0. The LLM judge criteria evaluate nuanced correctness.
+  Any bare-except or swallowed-exception detection is stored in harness memory
+  as a Tier-B anti-pattern: "coding-agent: used bare except in <run-id>".
+  After 2 occurrences the pattern is promoted and a patch to coding-agent instructions
+  is proposed.

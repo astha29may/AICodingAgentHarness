@@ -1,0 +1,43 @@
+flowchart TB
+  subgraph CAPTURE["① CAPTURE — dynamic, per solution"]
+    direction TB
+    W["WRITE — five feedback channels<br/>review · test · benchmark · patches · corrections"]:::dyn
+    L[["ledger.jsonl — evidence log<br/>accumulates per solution"]]:::dyn
+    W ==> L
+  end
+
+  M["② MANAGE — evidence plane (process)<br/>dedupe → confidence ± → promote → A/B replay<br/><b>promotion turns per-repo evidence into cross-repo memory</b>"]:::proc
+  L ==> M
+
+  subgraph STORE["③ STORE — scope plane (git-versioned, shareable)"]
+    direction LR
+    RS["repo / subsystem memory<br/><b>DYNAMIC · solution-specific</b><br/>committed in solution repo"]:::dyn
+    US["user preferences<br/><b>STATIC · cross-repo (per user)</b><br/>personal synced store"]:::stat
+    GS["global-approved patterns<br/><b>STATIC · cross-repo (generic)</b><br/>shared memory git repo"]:::stat
+  end
+  M ==> RS
+  M ==>|"≥ 2 distinct fingerprints<br/>+ human gate"| GS
+  M ==> US
+
+  ENG["ENGINE (no external runtime)<br/>Copilot + Python + optional GitHub Actions"]:::vol
+  ENG -. drives .-> M
+
+  R["④ READ — retrieval plane, ≤ 8000 tokens (process)<br/>gate → descriptors → top-k expand → cite → log"]:::proc
+  STORE ==> R
+  R ==> A(["Build agents (Copilot)"]):::proc
+
+  FP{{"repo fingerprint<br/>= solution identity"}}:::dyn
+  FP -. gates .-> STORE
+  R -. feedback .-> L
+
+  subgraph LEG["Legend"]
+    direction LR
+    D1["DYNAMIC — per solution (repo-specific, evolving)"]:::dyn
+    S1["STATIC — cross-repo (generic / shared, promoted)"]:::stat
+    P1["Process step"]:::proc
+  end
+
+  classDef dyn fill:#FFF3E0,stroke:#E65100,stroke-width:2px,stroke-dasharray:6 4,color:#BF360C;
+  classDef stat fill:#E8F5E9,stroke:#2E7D32,stroke-width:3px,color:#1B5E20;
+  classDef proc fill:#ECEFF1,stroke:#455A64,color:#263238;
+  classDef vol fill:#FCE4EC,stroke:#AD1457,stroke-dasharray:3 3,color:#880E4F;

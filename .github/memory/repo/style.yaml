@@ -1,0 +1,5 @@
+# .github/memory/repo/style.yaml
+# Repo style overrides — beats user preferences on conflict. Materialization target for the
+# Copilot-facing files. Each entry follows the single record shape in ../schema.yaml.
+# Documented placeholder until the self-learning loop promotes the first repo style rule.
+style: []
