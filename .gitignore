@@ -12,3 +12,6 @@ copilotscripts/*
 gan-harness/runs/
 **/*.log
 3.1.0
+gan-harness/feedback/*
+*pptx
+.github/docs/harness-engineering-session-description.md

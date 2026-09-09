@@ -60,7 +60,12 @@ If the user says "close out this solution", review every harness agent that mate
 5. **Find root cause.** For recurring deviations, decide whether the spec is **ambiguous, missing a
    rule, or contradictory** — that is what you fix, not the one-off symptom.
 6. **Synthesize learnings.** In solution-closeout mode, separate agent-specific gaps from shared cross-cutting learnings so a repeated issue can be fixed once at the right layer. Learnings come from BOTH the classified deviations AND agent **self-identified improvements** surfaced while building (a missing coding principle, a better pattern, a harness gap) — even on a clean `PASS` with no user correction. This is the self-learning intake, not just a corrections channel.
-7. **Route each learning to its promotion target.** A **spec gap** (a missing / ambiguous / contradictory rule in an agent's spec) becomes a **proposed spec change** to that agent's `.github/agents/<name>.agent.md` (Output 2, refreshes the *agent file*). A **reusable, spec-independent coding principle** becomes a **memory candidate** (Output 4, refreshes *memory*). A single miss may yield both — the spec-side half as an agent edit and the reusable half as memory.
+7. **Route each learning to the best destination — and recommend it.** Classify every learning into ONE primary destination and record that recommendation on the candidate (`promotion.recommended` + `promotion.target` + `promotion.rationale`) so the human can accept or override it in the dashboard before pushing:
+   - **memory** — a reusable, spec-independent fact/convention → `.github/memory/repo/conventions.yaml`.
+   - **agent** — a behavioral rule for one specific agent → that agent's `.github/agents/<name>.agent.md`.
+   - **agents-md** — a cross-cutting rule that governs all agents / the whole harness → `AGENTS.md`.
+   - **skill** — a reusable technique or procedure → the relevant `.github/skills/<name>/SKILL.md`.
+   Pick the narrowest destination that fully captures the learning; a single miss may yield more than one candidate (e.g. a spec-side agent rule *plus* a reusable memory fact). You only recommend — promotion stays human-approved.
 
 ## Outputs
 ### 1. Per-agent ledger (always)
@@ -108,6 +113,21 @@ the `.github/memory/policy.yaml` gates and label each:
 - **PROMOTE-READY** — confidence ≥ threshold, ≥ 2 independent sources, `ab_replay: pass`.
 - **PROPOSAL** — otherwise (state which gate it is waiting on).
 
+**Recommended destination (required).** Add a `promotion` block to every candidate so the dashboard can route it under human control:
+
+```yaml
+promotion:
+  recommended: memory | agent | agents-md | skill
+  target: <file the rule belongs in, e.g. .github/agents/coding-agent.agent.md or .github/skills/tdd-workflow/SKILL.md; omit for the fixed memory/agents-md paths>
+  rationale: <one line: why this destination and not the others>
+```
+
+The human promotes from the dashboard's **Memory** tab, where they can accept the recommendation or
+override the destination/target before pushing. Promotion to an agent spec / `AGENTS.md` / a skill
+appends the rule under a `## Learned rules (agent-feedback)` section in that file; memory promotion
+appends the record to `conventions.yaml`. Either way the ledger entry flips to `promoted` with a
+`promoted_to` stamp.
+
 **Scope routing:**
 - Default scope is **repo** (the narrowest that fits); repo candidates are proposed for the repo store.
 - If a learning is **generic / cross-repo** (a universal coding principle, not repo-specific), propose
@@ -118,8 +138,9 @@ the `.github/memory/policy.yaml` gates and label each:
 ("No new memory candidates this run — existing memory already covers the observed behavior"). Never
 invent a learning just to fill the loop.
 
-Promotion into the store (`.github/memory/repo/*.yaml`) and materialization (`sync-memory.py`) stay
-human-approved; you only mint candidates and label their gate status.
+Promotion — into memory (`.github/memory/repo/*.yaml`) or into an agent spec / `AGENTS.md` / a skill —
+stays human-approved from the dashboard; you only mint candidates, recommend a destination, and label
+their gate status. Memory materialization (`sync-memory.py`) is unchanged.
 
 ## Rules
 - **Evidence or it didn't happen.** Every deviation cites a turn/file/session id. No speculation.

@@ -34,6 +34,8 @@ Catch defects, security issues, and drift before code merges. Review, don't rewr
 ### Tests
 - Failing-first test exists for new behavior; edge cases covered.
 - Deterministic; meets coverage target.
+- **No false-greens.** Reject tautological or presence-only assertions (`assert True`, `assert len(x) >= 0`, a bare `assert x is not None`) and substring checks a degraded/clarification response also satisfies — each test must assert the discriminating value and go red on the wrong behavior.
+- A required live dependency that is unreachable must make the test fail, not skip (a preflight canary), so degraded runs cannot pass silently.
 
 ### Maintainability
 - Matches existing patterns/naming; no dead code; no unjustified abstractions.

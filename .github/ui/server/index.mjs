@@ -135,15 +135,74 @@ app.post("/api/approve", async (req, res) => {
   res.json({ ok: true, stage, approved });
 });
 
-// Promote a memory candidate into the repo store (.github/memory/repo/conventions.yaml) and
-// flip its ledger entry to "promoted". Human-approved promotion, mirroring the agent-feedback flow.
-app.post("/api/promote-memory", async (req, res) => {
+// Promote a session-learning candidate to its chosen destination — memory (conventions.yaml),
+// an agent spec, AGENTS.md, or a skill — and flip its ledger entry to "promoted". The
+// agent-feedback agent recommends a destination; the human picks the final one here.
+const PROMOTE_SECTION = "## Learned rules (agent-feedback)";
+
+function resolveWithinRepo(rel) {
+  const abs = path.resolve(REPO_ROOT, rel);
+  if (abs !== REPO_ROOT && !abs.startsWith(REPO_ROOT + path.sep)) throw new Error("path escapes repository");
+  return abs;
+}
+
+// Allow-list each destination kind so a client can't write to arbitrary files (path traversal).
+function promotionTarget(kind, rel) {
+  const p = String(rel ?? "").replace(/\\/g, "/");
+  if (kind === "memory") return { abs: resolveWithinRepo(".github/memory/repo/conventions.yaml"), mode: "yaml", rel: ".github/memory/repo/conventions.yaml" };
+  if (kind === "agents-md") return { abs: resolveWithinRepo("AGENTS.md"), mode: "md", rel: "AGENTS.md" };
+  if (kind === "agent") {
+    if (!/^\.github\/agents\/[\w.-]+\.agent\.md$/.test(p)) throw new Error("invalid agent target (expected .github/agents/<name>.agent.md)");
+    return { abs: resolveWithinRepo(p), mode: "md", rel: p };
+  }
+  if (kind === "skill") {
+    if (!/^\.github\/skills\/[\w.-]+\/SKILL\.md$/.test(p)) throw new Error("invalid skill target (expected .github/skills/<name>/SKILL.md)");
+    return { abs: resolveWithinRepo(p), mode: "md", rel: p };
+  }
+  throw new Error(`unknown promotion kind: ${kind}`);
+}
+
+function candidateBullet(record) {
+  const id = record.id ?? "candidate";
+  const desc = record.descriptor ?? record.rule ?? record.title ?? "";
+  const body = record.content ?? record.body ?? record.text ?? record.summary ?? "";
+  const text = [desc, body].filter(Boolean).join(" \u2014 ") || "TODO: describe the learned rule";
+  return `- ${new Date().toISOString().slice(0, 10)} [\`${id}\`]: ${text}`;
+}
+
+async function appendMarkdownRule(abs, record, id) {
+  let md;
+  try {
+    md = await fs.readFile(abs, "utf8");
+  } catch {
+    throw new Error(`target not found: ${abs}`);
+  }
+  if (md.includes(`[\`${id}\`]:`)) throw new Error(`${id} already promoted`);
+  const bullet = candidateBullet(record);
+  const idx = md.indexOf(PROMOTE_SECTION);
+  if (idx === -1) {
+    md = `${md.replace(/\s*$/, "")}\n\n${PROMOTE_SECTION}\n\n> Rules promoted from session retrospectives (agent-feedback), human-approved.\n\n${bullet}\n`;
+  } else {
+    const nextH2 = md.indexOf("\n## ", idx + PROMOTE_SECTION.length);
+    const end = nextH2 === -1 ? md.length : nextH2;
+    md = `${md.slice(0, end).replace(/\s*$/, "")}\n${bullet}\n${md.slice(end)}`;
+  }
+  await fs.writeFile(abs, md, "utf8");
+}
+
+async function handlePromote(req, res) {
   const id = String(req.body?.id ?? "");
+  const kind = String(req.body?.kind ?? "memory");
   if (!id) return res.status(400).json({ error: "id is required" });
 
-  const ledgerPath = path.join(REPO_ROOT, "gan-harness", "feedback", "ledger.jsonl");
-  const convPath = path.join(REPO_ROOT, ".github", "memory", "repo", "conventions.yaml");
+  let target;
+  try {
+    target = promotionTarget(kind, req.body?.path);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
 
+  const ledgerPath = path.join(REPO_ROOT, "gan-harness", "feedback", "ledger.jsonl");
   let lines;
   try {
     lines = (await fs.readFile(ledgerPath, "utf8")).split(/\r?\n/);
@@ -162,40 +221,40 @@ app.post("/api/promote-memory", async (req, res) => {
     }
     if (obj.id === id) {
       record = JSON.parse(JSON.stringify(obj));
-      obj.evidence = { ...(obj.evidence ?? {}), state: "promoted" };
+      obj.evidence = { ...(obj.evidence ?? {}), state: "promoted", promoted_to: { kind, path: target.rel } };
       return JSON.stringify(obj);
     }
     return line;
   });
   if (!record) return res.status(404).json({ error: `candidate ${id} not found` });
 
-  record.evidence = {
-    ...(record.evidence ?? {}),
-    state: "approved",
-    last_confirmed: new Date().toISOString().slice(0, 10),
-  };
-
-  let store = {};
   try {
-    store = YAML.parse(await fs.readFile(convPath, "utf8")) ?? {};
-  } catch {
-    store = {};
-  }
-  if (!Array.isArray(store.conventions)) store.conventions = [];
-  if (store.conventions.some((c) => c?.id === id)) {
-    return res.status(409).json({ error: `${id} already promoted` });
-  }
-  store.conventions.push(record);
-
-  try {
-    await fs.writeFile(convPath, YAML.stringify(store), "utf8");
+    if (target.mode === "yaml") {
+      let store = {};
+      try {
+        store = YAML.parse(await fs.readFile(target.abs, "utf8")) ?? {};
+      } catch {
+        store = {};
+      }
+      if (!Array.isArray(store.conventions)) store.conventions = [];
+      if (store.conventions.some((c) => c?.id === id)) return res.status(409).json({ error: `${id} already promoted` });
+      record.evidence = { ...(record.evidence ?? {}), state: "approved", last_confirmed: new Date().toISOString().slice(0, 10) };
+      store.conventions.push(record);
+      await fs.writeFile(target.abs, YAML.stringify(store), "utf8");
+    } else {
+      await appendMarkdownRule(target.abs, record, id);
+    }
     await fs.writeFile(ledgerPath, rewritten.join("\n"), "utf8");
   } catch (err) {
-    return res.status(500).json({ error: `write: ${err.message}` });
+    const code = /already promoted/.test(err.message) ? 409 : 500;
+    return res.status(code).json({ error: err.message });
   }
   schedulePush();
-  res.json({ ok: true, id });
-});
+  res.json({ ok: true, id, kind, path: target.rel });
+}
+
+app.post("/api/promote", handlePromote);
+app.post("/api/promote-memory", handlePromote); // back-compat alias (defaults to memory)
 
 // Serve the built web app in production (npm run build -> dist).
 const distDir = path.join(__dirname, "..", "dist");

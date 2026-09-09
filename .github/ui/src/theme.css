@@ -1128,6 +1128,50 @@ code {
   color: var(--muted);
   margin-top: 4px;
 }
+.mem-card__promo {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border);
+}
+.mem-card__rec {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+.mem-card__rec-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-2);
+}
+.mem-card__rec-why {
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.mem-card__route {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.mem-select,
+.mem-input {
+  font-size: 11px;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+.mem-input {
+  flex: 1;
+  min-width: 180px;
+  font-family: var(--mono, monospace);
+}
+.mem-select:disabled,
+.mem-input:disabled {
+  opacity: 0.55;
+}
 
 /* ── Tests tab ───────────────────────────────────────────── */
 .chip--unit {
@@ -1158,6 +1202,72 @@ code {
   flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 6px;
+}
+.test-results-sum {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.test-results-when {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.res {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+.res--ok {
+  background: rgba(53, 211, 153, 0.16);
+  color: var(--ok);
+}
+.res--fail {
+  background: rgba(255, 92, 114, 0.16);
+  color: var(--danger);
+}
+.res--muted {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--muted);
+}
+.test-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+.test-table th,
+.test-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.test-table th {
+  color: var(--muted);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+}
+.tc-desc {
+  color: var(--text);
+  min-width: 220px;
+}
+.tc-issue {
+  color: var(--danger);
+  font-size: 11px;
+  max-width: 320px;
+  line-height: 1.4;
+}
+.tc-file {
+  color: var(--muted);
+  font-family: var(--mono, monospace);
+  font-size: 10.5px;
+  white-space: nowrap;
 }
 .subtabs {
   display: flex;

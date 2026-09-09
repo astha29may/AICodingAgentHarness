@@ -11,12 +11,16 @@ export async function approveStage(stage: "design" | "plan", approved = true): P
   }
 }
 
-// Promote a memory candidate into the repo store (human-approved).
-export async function promoteMemory(id: string): Promise<void> {
-  const res = await fetch("/api/promote-memory", {
+// Where a session-learning candidate can be promoted.
+export type PromoteKind = "memory" | "agent" | "agents-md" | "skill";
+
+// Promote a candidate to a chosen destination (human-approved). `path` is required for
+// agent/skill targets; memory and AGENTS.md have fixed paths.
+export async function promote(id: string, kind: PromoteKind, targetPath?: string): Promise<void> {
+  const res = await fetch("/api/promote", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id }),
+    body: JSON.stringify({ id, kind, path: targetPath }),
   });
   if (!res.ok) {
     const detail = await res.json().catch(() => ({}));

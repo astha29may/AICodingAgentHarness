@@ -584,14 +584,38 @@ function classifyByDir(relInTests, table, fallback) {
   return fallback;
 }
 
+function humanizeTestName(name) {
+  const s = name.replace(/^test_/, "").replace(/_/g, " ").trim();
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : name;
+}
+
+// Extract test cases WITH a human description: a Python docstring's first line, the it()/test()
+// title, or a humanized function name — so the UI shows what each test means, not just its symbol.
 function extractTestCases(content, ext) {
-  const names = [];
+  const cases = [];
   if (ext === ".py") {
-    for (const m of content.matchAll(/^\s*(?:async\s+)?def\s+(test_\w+)/gm)) names.push(m[1]);
+    const lines = content.split(/\r?\n/);
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(/^\s*(?:async\s+)?def\s+(test_\w+)/);
+      if (!m) continue;
+      const name = m[1];
+      let description = "";
+      const next = (lines[i + 1] ?? "").trim();
+      const q = next.startsWith('"""') ? '"""' : next.startsWith("'''") ? "'''" : "";
+      if (q) {
+        let doc = next.slice(3);
+        if (doc.endsWith(q)) doc = doc.slice(0, -3); // one-line docstring
+        if (!doc.trim()) doc = (lines[i + 2] ?? "").trim(); // text on the following line
+        description = doc.replace(/(?:"""|''')\s*$/, "").trim();
+      }
+      cases.push({ name, description: description || humanizeTestName(name) });
+    }
   } else {
-    for (const m of content.matchAll(/\b(?:it|test)\s*\(\s*[`'"]([^`'"]+)[`'"]/g)) names.push(m[1]);
+    for (const m of content.matchAll(/\b(?:it|test)\s*\(\s*[`'"]([^`'"]+)[`'"]/g)) {
+      cases.push({ name: m[1], description: m[1] });
+    }
   }
-  return names;
+  return cases;
 }
 
 async function collectTestFiles(dir, out, depth = 6) {
@@ -610,26 +634,57 @@ async function collectTestFiles(dir, out, depth = 6) {
   }
 }
 
-// Discover the project's test suite, group it by the owning agent, and attach the
-// verification-evaluator's acceptance rubric and the code-reviewer's checklist.
+// Optional test results (written by .github/scripts/collect-test-results.py from a JUnit run),
+// keyed by `<repo-relative-file>::<test-name>`. Absent → every case shows "not run".
+async function loadTestResults(repoRoot) {
+  const raw = await readText(path.join(repoRoot, "gan-harness", "test-results.json"));
+  const map = new Map();
+  if (!raw.trim()) return { map, generated: null };
+  try {
+    const j = JSON.parse(raw);
+    for (const c of j.cases ?? []) {
+      const file = String(c.file ?? "").replace(/\\/g, "/");
+      map.set(`${file}::${c.name}`, {
+        result: String(c.result ?? "not-run"),
+        message: String(c.message ?? "").split(/\r?\n/)[0].slice(0, 300),
+      });
+    }
+    return { map, generated: j.generated ?? null };
+  } catch {
+    return { map, generated: null };
+  }
+}
+
+// Discover the project's test suite, group it by the owning lane, join each case to its result,
+// and attach the verification acceptance rubric and the code-reviewer's checklist.
 async function loadTests(repoRoot) {
   const root = path.join(repoRoot, "tests");
   const files = [];
   await collectTestFiles(root, files);
+  const { map: results, generated } = await loadTestResults(repoRoot);
 
   const byType = {};
+  const totals = { passed: 0, failed: 0, notRun: 0 };
   const groups = new Map();
   for (const abs of files.sort()) {
     const rel = path.relative(repoRoot, abs).split(path.sep).join("/");
     const relInTests = path.relative(root, abs).split(path.sep).join("/");
     const ext = path.extname(abs);
     const cases = extractTestCases(await readText(abs), ext);
-    const type = classifyByDir(relInTests, TEST_DIR_TYPE, ext === ".py" ? "unit" : "unit");
+    const type = classifyByDir(relInTests, TEST_DIR_TYPE, "unit");
     const agent = classifyByDir(relInTests, TEST_DIR_AGENT, "backend-engineer");
     byType[type] = (byType[type] ?? 0) + cases.length;
-    const g = groups.get(agent) ?? { agent, files: [], caseCount: 0 };
-    g.files.push({ path: rel, name: path.basename(rel), type, count: cases.length, cases });
+    const g = groups.get(agent) ?? { agent, cases: [], caseCount: 0, fileCount: 0 };
+    for (const c of cases) {
+      const r = results.get(`${rel}::${c.name}`);
+      const result = r?.result ?? "not-run";
+      if (result === "passed") totals.passed++;
+      else if (result === "failed" || result === "error") totals.failed++;
+      else totals.notRun++;
+      g.cases.push({ file: rel, name: c.name, description: c.description, type, result, message: r?.message ?? "" });
+    }
     g.caseCount += cases.length;
+    g.fileCount++;
     groups.set(agent, g);
   }
 
@@ -653,7 +708,17 @@ async function loadTests(repoRoot) {
     (a, b) => (order.indexOf(a.agent) + 1 || 99) - (order.indexOf(b.agent) + 1 || 99),
   );
   const caseCount = groupList.reduce((n, g) => n + g.caseCount, 0);
-  return { total: caseCount, files: files.length, byType, groups: groupList, rubric, reviewChecks: REVIEW_CHECKS };
+  return {
+    total: caseCount,
+    files: files.length,
+    byType,
+    results: totals,
+    hasResults: !!generated || results.size > 0,
+    generated,
+    groups: groupList,
+    rubric,
+    reviewChecks: REVIEW_CHECKS,
+  };
 }
 
 // ── Efficiency log ────────────────────────────────────────────────────────────────

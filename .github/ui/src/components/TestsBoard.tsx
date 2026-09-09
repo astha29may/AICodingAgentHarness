@@ -20,6 +20,19 @@ function agentLabel(agent: string): string {
   return AGENT_META[agent]?.label ?? agent;
 }
 
+function resultClass(r: string): string {
+  if (r === "passed") return "ok";
+  if (r === "failed" || r === "error") return "fail";
+  return "muted";
+}
+
+function resultLabel(r: string): string {
+  if (r === "passed") return "passed";
+  if (r === "failed") return "failed";
+  if (r === "error") return "error";
+  return "not run";
+}
+
 export function TestsBoard({ tests }: Props) {
   const groups = tests.groups ?? [];
   const [active, setActive] = useState<string>(groups[0]?.agent ?? "");
@@ -35,7 +48,7 @@ export function TestsBoard({ tests }: Props) {
       <div className="panel__head">
         <h2>Tests</h2>
         <span className="panel__hint">
-          {tests.total} cases · {tests.files} files — what validates each stage, by agent
+          {tests.total} cases · {tests.files} files — what each test verifies, by lane
         </span>
       </div>
 
@@ -47,6 +60,22 @@ export function TestsBoard({ tests }: Props) {
             </span>
           ))}
         </div>
+      )}
+
+      {tests.hasResults ? (
+        <div className="test-results-sum">
+          <span className="res res--ok">{tests.results.passed} passed</span>
+          <span className="res res--fail">{tests.results.failed} failed</span>
+          <span className="res res--muted">{tests.results.notRun} not run</span>
+          {tests.generated && <span className="test-results-when">as of {tests.generated}</span>}
+        </div>
+      ) : (
+        groups.length > 0 && (
+          <div className="note-banner">
+            Results appear once verification runs <code>.github/scripts/collect-test-results.py</code>{" "}
+            (JUnit → <code>gan-harness/test-results.json</code>). Until then each case shows “not run”.
+          </div>
+        )
       )}
 
       {groups.length === 0 ? (
@@ -69,7 +98,7 @@ export function TestsBoard({ tests }: Props) {
             ))}
           </nav>
 
-          {current && <GroupView group={current} />}
+          {current && <GroupTable group={current} />}
         </>
       )}
 
@@ -121,57 +150,50 @@ export function TestsBoard({ tests }: Props) {
   );
 }
 
-function GroupView({ group }: { group: TestGroup }) {
+function GroupTable({ group }: { group: TestGroup }) {
   const meta = AGENT_META[group.agent];
   return (
     <div className="test-group">
       <div className="test-group__head">
         <span className="test-group__role">{meta?.role ?? group.agent}</span>
         <span className="test-group__count">
-          {group.files.length} files · {group.caseCount} cases
+          {group.fileCount} files · {group.caseCount} cases
         </span>
       </div>
 
-      <h3 className="subhead">Test files ({group.files.length})</h3>
-      <div className="test-files">
-        {group.files.map((f) => (
-          <TestFileCard key={f.path} name={f.name} path={f.path} type={f.type} cases={f.cases} count={f.count} />
-        ))}
-      </div>
+      <table className="test-table">
+        <thead>
+          <tr>
+            <th>Test case</th>
+            <th>Type</th>
+            <th>Result</th>
+            <th>Issue</th>
+            <th>File</th>
+          </tr>
+        </thead>
+        <tbody>
+          {group.cases.map((c, i) => {
+            const failed = c.result === "failed" || c.result === "error";
+            return (
+              <tr key={`${c.file}:${c.name}:${i}`}>
+                <td className="tc-desc">
+                  <span title={c.name}>{c.description}</span>
+                </td>
+                <td>
+                  <span className={`chip chip--${c.type}`}>{c.type}</span>
+                </td>
+                <td>
+                  <span className={`res res--${resultClass(c.result)}`}>{resultLabel(c.result)}</span>
+                </td>
+                <td className="tc-issue">{failed ? c.message || "—" : ""}</td>
+                <td className="tc-file">
+                  <span title={c.file}>{c.file}</span>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
-  );
-}
-
-function TestFileCard({
-  name,
-  path,
-  type,
-  cases,
-  count,
-}: {
-  name: string;
-  path: string;
-  type: string;
-  cases: string[];
-  count: number;
-}) {
-  const [open, setOpen] = useState(false);
-  return (
-    <article className="test-file">
-      <button className="test-file__head" onClick={() => setOpen((v) => !v)}>
-        <span className={`chip chip--${type}`}>{type}</span>
-        <span className="test-file__name">{name}</span>
-        <span className="test-file__count">{count}</span>
-        <span className="test-file__caret">{open ? "▾" : "▸"}</span>
-      </button>
-      <div className="test-file__path">{path}</div>
-      {open && cases.length > 0 && (
-        <ul className="test-file__cases">
-          {cases.map((c) => (
-            <li key={c}>{c}</li>
-          ))}
-        </ul>
-      )}
-    </article>
   );
 }

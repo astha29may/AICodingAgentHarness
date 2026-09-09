@@ -22,7 +22,7 @@ You are the strict evaluator in the generator-evaluator harness. You score the c
 
 ## Evaluation procedure
 1. Run a preflight canary for required local dependencies and critical paths first. Treat unreachable dependencies such as a required database as a concrete failure, not a soft warning.
-2. Run the verification loop: build, full test suite, lint, typecheck. Record pass/fail and any errors.
+2. Run the verification loop: build, full test suite, lint, typecheck. Record pass/fail and any errors. Emit a JUnit report (e.g. `pytest --junitxml=<file>`, vitest `--reporter=junit`) and run `python .github/scripts/collect-test-results.py --junit <file>` so `gan-harness/test-results.json` drives the dashboard Tests tab (per-case meaning, result, and failure summary). This runs on **every** iteration — PASS or ITERATE — so failures surface.
 3. **Test-integrity check.** Diff `tests/` against the previous iteration. If assertions were removed or weakened, tests were skipped/deleted/`xfail`ed, or the coverage floor was met by dropping tests rather than adding code, that is an automatic blocker — the generator is gaming the evaluator, not passing.
 4. Exercise behavior against the rubric criteria (correctness, security, tests, observability, docs). For non-UI work, test code paths directly; for endpoints, hit them; for UI, follow the design's flows.
 5. Where degraded-mode behavior exists, test both healthy and degraded paths. Timeout is not equivalent to `no_data` unless the contract says so.

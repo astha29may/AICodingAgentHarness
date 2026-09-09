@@ -26,6 +26,8 @@ Enforce a strict red-green-refactor loop so every behavior is proven by a test b
 ## Rules
 - No production code without a failing test for it first.
 - One behavior per cycle; keep diffs small.
+- Assert the **discriminating value**, and confirm the test goes red on the wrong behavior (a negative control). Never ship tautological or presence-only assertions (`assert True`, `assert len(x) >= 0`, a bare `assert x is not None`) or a substring check a degraded/clarification response also satisfies — these are false-greens.
+- A required live dependency (DB, service) that is unreachable must make the test **fail, not skip**; use a session-scoped preflight canary that aborts the suite instead of emitting silent passes.
 - Tests must be deterministic — no reliance on wall-clock time, ordering, or live network unless mocked.
 - Cover edge cases and error paths, not just the happy path.
 - Match the repo's existing test framework and conventions (see `docs/testing.md`).

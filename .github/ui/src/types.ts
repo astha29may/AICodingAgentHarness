@@ -131,18 +131,20 @@ export interface MemorySuggestion {
   [key: string]: unknown;
 }
 
-export interface TestFile {
-  path: string;
+export interface TestCase {
+  file: string;
   name: string;
+  description: string;
   type: string;
-  count: number;
-  cases: string[];
+  result: "passed" | "failed" | "error" | "not-run" | string;
+  message: string;
 }
 
 export interface TestGroup {
   agent: string;
-  files: TestFile[];
+  cases: TestCase[];
   caseCount: number;
+  fileCount: number;
 }
 
 export interface RubricCriterion {
@@ -160,6 +162,9 @@ export interface TestsState {
   total: number;
   files: number;
   byType: Record<string, number>;
+  results: { passed: number; failed: number; notRun: number };
+  hasResults: boolean;
+  generated: string | null;
   groups: TestGroup[];
   rubric: RubricCriterion[];
   reviewChecks: ReviewCheck[];
