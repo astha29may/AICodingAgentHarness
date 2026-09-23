@@ -2,8 +2,8 @@
 name: tdd-workflow
 description: >
   Test-driven development workflow: write a failing test, make it pass with minimal code, refactor,
-  and verify. Use when implementing a feature or fix, adding tests, or enforcing a write-tests-first
-  discipline before production code.
+  and validate the affected slice. Use when implementing a feature or fix, adding tests, or enforcing
+  a write-tests-first discipline before production code.
 ---
 
 # TDD Workflow Skill
@@ -20,7 +20,7 @@ Enforce a strict red-green-refactor loop so every behavior is proven by a test b
 1. **RED** — Write the smallest failing test that describes the desired behavior. Run it. Confirm it fails for the right reason (not a typo/import error).
 2. **GREEN** — Write the minimal production code to pass the test. Run it. Confirm green.
 3. **REFACTOR** — Improve names, remove duplication, simplify — without changing behavior. Keep tests green.
-4. **VERIFY** — Run the full verification loop: build, all tests, lint, typecheck.
+4. **VERIFY** — Rerun the targeted test, then run touched-slice lint, type, or build checks when available.
 5. **REPEAT** — Next behavior.
 
 ## Rules
@@ -32,17 +32,22 @@ Enforce a strict red-green-refactor loop so every behavior is proven by a test b
 - Cover edge cases and error paths, not just the happy path.
 - Match the repo's existing test framework and conventions (see `docs/testing.md`).
 - Meet the coverage target defined in `IMPLEMENTATIONPLAN.md`.
+- During an in-progress repair, read only the failing behavior, owning code, nearest callers, and
+  relevant regression test. Avoid broad repository analysis.
+- Escalate to broader or full verification only when a fix affects shared or public contracts, crosses
+  modules, changes dependencies or infrastructure, touches security-critical behavior, focused checks
+  expose wider regressions, the user requests it, or the work reaches final evaluator/CI handoff.
 
 ## Bug-fix variant
 1. Analyze the existing code and identify the **root cause** before changing anything; state it in one line.
 2. Write a failing test that reproduces the bug.
 3. Fix the root cause *within the existing logic* — do not add a parallel path, wrapper, or patch that masks the symptom and opens a new issue.
-4. Confirm no regressions via the full suite.
+4. Rerun the reproducer and available checks for the touched slice; broaden verification only under the escalation rules above.
 
 ## Expected commands
 Use the project's documented test commands from `docs/testing.md`. If none are documented, discover them from the repo config and record them in `docs/testing.md` (replace any `TODO: Add details`).
 
 ## Done when
 - The new test(s) pass.
-- The full verification loop passes.
-- No new lint/type errors elsewhere.
+- Available lint, type, and build checks for the touched slice pass.
+- Broader verification passes when an escalation condition applies.
