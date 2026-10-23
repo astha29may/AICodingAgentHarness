@@ -23,7 +23,8 @@ Match exploration to the work; reading files costs tokens on every turn, so read
   existing tree and do NOT search broadly — there is nothing to preserve yet. Build straight from the plan.
 - **Modification / bug fix (changing existing code).** Only here do the read-before-edit,
   diagnose-root-cause, and search-before-create disciplines below apply — the reading is justified
-  because existing behavior must be preserved. Read the file(s) you will change, not the whole tree.
+   because existing behavior must be preserved. For a localized repair, read only the failing behavior,
+   owning code, nearest callers, and relevant regression test; do not broadly analyze the repository.
 
 The parallel-build lanes run in build mode; `coding-agent` runs in modify/fix mode. Do not import
 build-mode breadth into a fix, or fix-mode exploration into a first draft.
@@ -97,9 +98,13 @@ over the symptom and creates a second problem.
 4. **No new bug for an old one.** Before finishing, confirm the fix does not break callers, regress
    other behavior, or violate a published `gan-harness/contracts/` interface.
 5. **Reproduce, then prove.** Write/keep a failing test that reproduces the bug; the fix makes it pass
-   (TDD bug-fix variant). Run the full verification loop.
+   (TDD bug-fix variant). Rerun the targeted test, then run touched-slice lint, type, or build checks when available.
 6. **If the design itself is wrong**, stop and surface it — propose the design change rather than
    silently working around it in code.
+
+Escalate to broader or full verification only when a fix affects shared or public contracts, crosses
+modules, changes dependencies or infrastructure, touches security-critical behavior, focused checks
+expose wider regressions, the user requests it, or the work reaches final evaluator/CI handoff.
 
 ## Engineering Best Practices (at system edges)
 These apply only at **system boundaries** (public APIs, UI, external/model/data-source calls) — they

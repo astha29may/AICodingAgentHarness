@@ -17,13 +17,17 @@ Provide a deterministic, repeatable quality gate and the scoring step of the gen
 - As a CI-equivalent gate locally.
 
 ## The verification gate (run in order)
+0. **Preflight canary** — probe required local dependencies and critical paths first (e.g. a known-count query). An unreachable dependency is a concrete failure, not a soft warning; it forces `ITERATE`, never a skipped-then-passed run.
 1. **Build** — the project compiles/builds with no errors.
 2. **Test** — the full suite passes (use commands from `docs/testing.md`).
 3. **Lint** — no lint errors introduced.
 4. **Typecheck** — no type errors introduced.
-5. **Test-integrity** — diff `tests/` against the previous iteration; assertions that were weakened, skipped, or deleted to pass are a blocker, not a pass.
+5. **Coverage** — collect coverage; below 80% is a blocker unless the plan's acceptance rubric explicitly sets and justifies a different minimum.
+6. **Test-integrity** — two checks: (a) diff `tests/` against the previous iteration — assertions weakened, skipped, or deleted to pass are a blocker; (b) born-vacuous detection — a new test that asserts nothing discriminating (`assert True`, `assert len(x) >= 0`, presence-only, or a substring a degraded/clarification response satisfies) is a false-green and a blocker, not a pass.
 
 Any failure stops the gate and is reported with the exact error.
+
+> Keep this list in parity with `verification-evaluator.agent.md`; when that spec is hardened, move this skill with it.
 
 ## Rubric scoring (generator-evaluator step)
 1. Read the weighted acceptance rubric from `output/IMPLEMENTATIONPLAN.md`.

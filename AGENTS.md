@@ -71,6 +71,18 @@ the orchestrating assistant **must invoke the corresponding agent as a subagent*
 - **Parallelize independent lanes.** When a stage has independent workstreams (e.g., the build lanes
   with non-overlapping file ownership), dispatch them as concurrent subagents. Only serialize when
   there is a real dependency (design depends on problem statement, plan depends on design, etc.).
+- **Signal agent run state (dashboard).** Bracket every subagent dispatch with a run marker so the
+  dashboard shows which agents are running regardless of where their code lands:
+  `python .github/scripts/agent-activity.py --agent <name> --event start` immediately before, and
+  `--event end` immediately after it returns. This layout-agnostic signal is the source of truth for
+  "is this agent running" — never infer it from file paths (a cross-cutting agent like
+  `observability-engineer` can write to any path).
+- **Decompose compound prompts.** When one user prompt contains multiple questions or tasks, split it
+  into atomic work items and identify dependencies before acting. Answer low-complexity factual or
+  repository questions directly; route specialized items to the narrowest qualified agent, using
+  `technical-architect` only for solution architecture, design choices, and technical tradeoffs.
+  Dispatch independent items concurrently when the available tools support it, serialize dependent
+  items, then synthesize all results into one coherent response and call out unresolved conflicts.
 - **Gather inputs before dispatch.** Because subagents are stateless and cannot pause to ask the
   user mid-run, the orchestrator collects required inputs first (project name, description, source
   folders/meetings/emails, EULA acceptance for WorkIQ, approval checkpoints), then passes them in the
@@ -81,6 +93,14 @@ the orchestrating assistant **must invoke the corresponding agent as a subagent*
 - **Human-in-the-loop is preserved.** Subagents still run under global constraints: no infra
   execution, no destructive actions, Microsoft/Azure-native by default, and approval checkpoints
   surfaced back to the user by the orchestrator.
+- **Approval gate (design & plan) is dual-surface and blocking.** The `design` and `plan`
+  checkpoints share one source of truth: `gan-harness/approvals.json`. The orchestrator must NOT
+  advance design→plan until `design.approved: true`, nor plan→build until `plan.approved: true`.
+  Approval may arrive from **either** surface and unblocks the next step: the dashboard's Approve
+  button (`POST /api/approve`) or the agent chat (`python .github/scripts/set-approval.py --stage
+  <design|plan> --approve`). When a stage completes, prompt for approval in chat AND leave the
+  dashboard checkpoint visible; before proceeding, check the gate
+  (`--stage <design|plan> --check`). Whichever surface approves, the harness continues.
 - **Minimal trigger; gates live in the agent specs.** The user starts the harness with only the project
   description (and any sources) — the orchestrator applies this sequence without the user restating it.
   It honors the gates the agents already own: the `technical-architect`'s design checkpoints and the

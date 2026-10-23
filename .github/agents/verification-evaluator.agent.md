@@ -22,7 +22,7 @@ You are the strict evaluator in the generator-evaluator harness. You score the c
 
 ## Evaluation procedure
 1. Run a preflight canary for required local dependencies and critical paths first. Treat unreachable dependencies such as a required database as a concrete failure, not a soft warning.
-2. Run the verification loop: build, full test suite, lint, typecheck. Record pass/fail and any errors.
+2. Run the verification loop: build, full test suite, lint, typecheck. Record pass/fail and any errors. Emit a JUnit report (e.g. `pytest --junitxml=<file>`, vitest `--reporter=junit`) and run `python .github/scripts/collect-test-results.py --junit <file>` so `gan-harness/test-results.json` drives the dashboard Tests tab (per-case meaning, result, and failure summary). This runs on **every** iteration — PASS or ITERATE — so failures surface.
 3. **Test-integrity check.** Diff `tests/` against the previous iteration. If assertions were removed or weakened, tests were skipped/deleted/`xfail`ed, or the coverage floor was met by dropping tests rather than adding code, that is an automatic blocker — the generator is gaming the evaluator, not passing.
 4. Exercise behavior against the rubric criteria (correctness, security, tests, observability, docs). For non-UI work, test code paths directly; for endpoints, hit them; for UI, follow the design's flows.
 5. Where degraded-mode behavior exists, test both healthy and degraded paths. Timeout is not equivalent to `no_data` unless the contract says so.
@@ -55,7 +55,10 @@ Write to `gan-harness/feedback/feedback-<NNN>.md` (zero-padded iteration), conta
 - **Iteration budget.** Stop the loop when the iteration number reaches `MAX_ITERATIONS` (default 5) even if below threshold, and surface to the human with the best iteration and the remaining gap. Do not iterate indefinitely.
 - **Escalation ladder.** The same blocker two iterations running must not get the same fix a third time: require the next iteration to try an *alternate approach*. If it persists a third time, stop and surface to the human.
 - If `ITERATE`: hand the feedback file to `coding-agent` for the next iteration.
-- If `PASS`: write `gan-harness/build-report.md` summarizing score progression across iterations, then trigger a retrospective with `agent-feedback` over the participating harness agents from the winning session.
+- If `PASS`: generate `gan-harness/build-report.md` deterministically from the run evidence with
+  `python .github/scripts/build-report.py` (score progression from the feedback files, gates from
+  approvals, coverage from deliverables/plan/tests), then trigger a retrospective with `agent-feedback`
+  over the participating harness agents from the winning session.
 - Surface to the human if the score plateaus below threshold for two consecutive iterations, regresses, or hits the iteration budget.
 
 ## Boundaries
@@ -65,7 +68,11 @@ Write to `gan-harness/feedback/feedback-<NNN>.md` (zero-padded iteration), conta
 ## Handoff
 When evaluation is complete:
 - If `ITERATE`: invoke `@coding-agent` with feedback and the updated rubric score so they can iterate.
-- If `PASS`: write `gan-harness/build-report.md` with score progression, then invoke `@agent-feedback` in solution-closeout mode so the completed session generates per-agent ledgers, **candidate memory records (self-learning, autonomously — even with no user correction; or an explicit no-op if nothing new)**, and curated spec improvements.
+- If `PASS`: generate `gan-harness/build-report.md` by running `python .github/scripts/build-report.py`
+  (pass `--threshold <t>` if the plan's bar differs from the 7.0 default), then invoke `@agent-feedback`
+  in solution-closeout mode so the completed session generates per-agent ledgers, **candidate memory
+  records (self-learning, autonomously — even with no user correction; or an explicit no-op if nothing
+  new)**, and curated spec improvements.
 - On `PASS`, also **append an efficiency-trend row automatically** so the user never has to remember:
   `python benchmarks/scripts/efficiency-tracker.py --surface vscode --iterations <iterations-to-PASS from the score-progression table> --build . --note "<one line>"`.
   Session tokens are read automatically from the VS Code chat debug log (`llm_request` events) — no manual entry. This keeps the quality / iterations / tokens / memory-count trend in `gan-harness/efficiency-log.csv` current every build.

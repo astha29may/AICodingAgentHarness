@@ -13,6 +13,9 @@ Strictly follow [`coding-style.instructions.md`](coding-style.instructions.md) f
 
 **Bug fixes:** first analyze the existing code and find the root cause, then fix it *within* the current logic — do not add a new code path, wrapper, or patch that masks the symptom and opens another issue (see the coding standards' Bug-Fixing Discipline).
 
+## Test integrity (mandatory)
+Every test must assert the **discriminating value** and be shown to fail on the wrong behavior — not merely that code ran. Never emit tautological or presence-only assertions (`assert True`, `assert len(x) >= 0`, a bare `assert x is not None`) or a substring check that a degraded/clarification response also satisfies. When a test depends on a live backend (DB, service), an unreachable dependency is a **failure, not a skip** — add or rely on a session-scoped preflight canary that aborts the suite rather than emitting silent false-greens.
+
 ## Output contract
 Follow [`output-contract.instructions.md`](output-contract.instructions.md).
 

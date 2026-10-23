@@ -4,8 +4,8 @@
 #
 # WHAT THIS MEASURES
 #   Does the planner convert an approved DESIGN.md into a sequenced, dependency-ordered
-#   IMPLEMENTATIONPLAN.md with a clear test strategy, file-level change map, and
-#   acceptance rubric — without expanding scope beyond the design?
+#   IMPLEMENTATIONPLAN.md with milestones, user stories, per-task file ownership, a clear
+#   test strategy, and an acceptance rubric — without expanding scope beyond the design?
 
 id: BM-03
 title: "Implementation Plan — SaaS Analytics Platform"
@@ -24,14 +24,16 @@ prompt: |
   Review output/DESIGN.md and produce a complete IMPLEMENTATIONPLAN.md at {{plan_output_path}}.
 
   The plan must include:
-  1. Dependency-ordered task breakdown (tasks with IDs, owners, effort estimates)
-  2. Test strategy: unit, integration, and E2E scenarios per task
-  3. File-level change map: which files each task creates or modifies
-  4. Acceptance rubric: explicit pass/fail criteria for verification-evaluator
-  5. Parallel workstreams: identify which tasks can run concurrently (frontend/backend/AI/data lanes)
+  1. Milestones and user stories (US-N) capturing the user-visible value each milestone delivers
+  2. Dependency-ordered task breakdown (tasks with IDs, effort estimates, and the story/milestone each serves)
+  3. Test strategy: unit, integration, and E2E scenarios per task
+  4. Per-task file ownership: each task lists the files it creates/modifies, non-overlapping across lanes
+  5. Acceptance rubric: explicit pass/fail criteria for verification-evaluator
+  6. Parallel workstreams: identify which tasks can run concurrently (frontend/backend/AI/data lanes)
 
   Constraints:
   - Do not expand scope beyond what DESIGN.md specifies.
+  - Scope, product/architecture risks, and design rationale stay in DESIGN.md — do not restate them.
   - Keep tasks small enough for a single coding-agent session.
   - Follow the template at templates/IMPLEMENTATIONPLAN.template.md.
 

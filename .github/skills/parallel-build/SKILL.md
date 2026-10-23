@@ -30,7 +30,7 @@ Run multiple specialist generators at once on disjoint slices of `IMPLEMENTATION
 ## Procedure
 1. **Decompose** — group plan tasks into lanes that touch disjoint files. Split or sequence any task that spans lanes.
 2. **Define contracts** — for every cross-lane dependency, write an interface contract to `gan-harness/contracts/<name>.md` (API shape, schema, event, type, inference signature) before lanes start. Typical dependency order: data → backend/ai → frontend.
-3. **Assign ownership** — record one owning lane per file in the plan's change map. Shared files are owned by `parallel-build-orchestrator` for merge.
+3. **Assign ownership** — record one owning lane per file in the plan's task breakdown (each task's target files). Shared files are owned by `parallel-build-orchestrator` for merge.
 4. **Isolate** — create a git branch/worktree per lane (`lane/frontend`, `lane/backend`, `lane/ai`, `lane/data`). For true parallelism, run each specialist in its own session/instance.
 5. **Build** — each specialist works test-first within its lane against the contracts (mock other lanes) and runs its own local verification.
 6. **Fan-in** — `parallel-build-orchestrator` integrates lanes against the contracts, resolves boundary conflicts, and runs the full verification loop once.

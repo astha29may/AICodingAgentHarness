@@ -14,6 +14,7 @@ the harness builds.
 | [testing.md](testing.md) | Test strategy and commands |
 | [observability.md](observability.md) | Logging, metrics, traces |
 | [evaluation.md](evaluation.md) | Evaluation approach |
+| [medium-agent-harness-article.md](medium-agent-harness-article.md) | Medium-ready guide to designing and building an agent harness, with demo insertion points |
 | [diagrams/](diagrams/) | Mermaid sources (`*.mmd`) + rendered PNGs; regenerate with `.github/scripts/render-diagrams.ps1` |
 | [templates/](templates/) | Blank documentation-governance **templates** (the `TODO: Add details` stubs a built project's `docs/` are filled from) — kept separate so they don't mix with the real harness docs above |
 
